@@ -1,6 +1,6 @@
 Name: mariadb
 Version: 5.5.29
-Release: 5%{?dist}
+Release: 4%{?dist}
 
 Summary: A community developed branch of MySQL
 Group: Applications/Databases
@@ -301,7 +301,7 @@ cat %{SOURCE14} > mysql-test/rh-skipped-tests.list
 cat %{SOURCE15} >> mysql-test/rh-skipped-tests.list
 %endif
 # disable some tests failing on ppc and s390
-%ifarch ppc ppc64 ppc64p7 s390 s390x
+%ifarch ppc ppc64 s390 s390x
 echo "main.gis-precise : rhbz#906367" >> mysql-test/rh-skipped-tests.list
 %endif
 %ifarch ppc s390
@@ -404,7 +404,7 @@ done
     cd mysql-test
     perl ./mysql-test-run.pl --force --retry=0 --ssl \
 	--skip-test-list=rh-skipped-tests.list \
-%ifarch ppc ppc64 ppc64p7
+%ifarch ppc ppc64
 	--nowarnings \
 %endif
 	--suite-timeout=720 --testcase-timeout=30
@@ -788,9 +788,6 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
-* Wed Feb 13 2013 Honza Horak <hhorak@redhat.com> 5.5.29-5
-- Suppress warnings in tests and skip tests also on ppc64p7
-
 * Tue Feb 12 2013 Honza Horak <hhorak@redhat.com> 5.5.29-4
 - Suppress warning in tests on ppc
 - Enable fixed index_merge_myisam test case
@@ -811,9 +808,6 @@ fi
   https://kb.askmonty.org/en/mariadb-5529-changelog/
 - Fix inaccurate default for socket location in mysqld-wait-ready
   Resolves: #890535
-
-* Thu Jan 31 2013 Honza Horak <hhorak@redhat.com> 5.5.28a-8
-- Enable obsoleting mysql
 
 * Wed Jan 30 2013 Honza Horak <hhorak@redhat.com> 5.5.28a-7
 - Adding necessary hacks for perl dependency checking, rpm is still

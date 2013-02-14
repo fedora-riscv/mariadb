@@ -1,6 +1,6 @@
 Name: mariadb
 Version: 5.5.29
-Release: 4%{?dist}
+Release: 5%{?dist}
 
 Summary: A community developed branch of MySQL
 Group: Applications/Databases
@@ -15,7 +15,7 @@ License: GPLv2 with exceptions and LGPLv2 and BSD
 %global obsoleted_mysql_evr 5.6-0
 
 # Should mariadb obsolete mysql?
-%{!?obsoletemysql:%global obsoletemysql 1}
+%{!?obsoletemysql:%global obsoletemysql 0}
 
 # Regression tests take a long time, you can skip 'em with this
 %{!?runselftest:%global runselftest 1}
@@ -301,7 +301,7 @@ cat %{SOURCE14} > mysql-test/rh-skipped-tests.list
 cat %{SOURCE15} >> mysql-test/rh-skipped-tests.list
 %endif
 # disable some tests failing on ppc and s390
-%ifarch ppc ppc64 s390 s390x
+%ifarch ppc ppc64 ppc64p7 s390 s390x
 echo "main.gis-precise : rhbz#906367" >> mysql-test/rh-skipped-tests.list
 %endif
 %ifarch ppc s390
@@ -404,7 +404,7 @@ done
     cd mysql-test
     perl ./mysql-test-run.pl --force --retry=0 --ssl \
 	--skip-test-list=rh-skipped-tests.list \
-%ifarch ppc ppc64
+%ifarch ppc ppc64 ppc64p7
 	--nowarnings \
 %endif
 	--suite-timeout=720 --testcase-timeout=30
@@ -788,6 +788,10 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Wed Feb 13 2013 Honza Horak <hhorak@redhat.com> 5.5.29-5
+- Suppress warnings in tests and skip tests also on ppc64p7
+- Do not obsolete mysql
+
 * Tue Feb 12 2013 Honza Horak <hhorak@redhat.com> 5.5.29-4
 - Suppress warning in tests on ppc
 - Enable fixed index_merge_myisam test case

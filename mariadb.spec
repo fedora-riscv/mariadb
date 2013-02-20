@@ -1,6 +1,6 @@
 Name: mariadb
 Version: 5.5.29
-Release: 5%{?dist}
+Release: 6%{?dist}
 
 Summary: A community developed branch of MySQL
 Group: Applications/Databases
@@ -27,10 +27,7 @@ Source6: README.mysql-docs
 Source7: README.mysql-license
 Source8: libmysql.version
 Source9: mysql-embedded-check.c
-Source10: mariadb.tmpfiles.d
-Source11: mysqld.service
-Source12: mysqld-prepare-db-dir
-Source13: mysqld-wait-ready
+Source11: mysql.init
 Source14: rh-skipped-tests-base.list
 Source15: rh-skipped-tests-arm.list
 # mysql_plugin is missing in mariadb tar ball
@@ -56,7 +53,7 @@ Patch14: mariadb-buffer.patch
 
 BuildRequires: perl, readline-devel, openssl-devel
 BuildRequires: cmake, ncurses-devel, zlib-devel, libaio-devel
-BuildRequires: systemd-units, systemtap-sdt-devel
+BuildRequires: systemtap-sdt-devel
 # make test requires time and ps
 BuildRequires: time procps
 # perl modules needed to run regression tests
@@ -65,8 +62,6 @@ BuildRequires: perl(Data::Dumper), perl(Test::More)
 
 Requires: real-%{name}-libs%{?_isa} = %{version}-%{release}
 Requires: grep, fileutils, bash
-
-%{?systemd_requires: %systemd_requires}
 
 # MySQL (with caps) is upstream's spelling of their own RPMs for mysql
 Conflicts: MySQL
@@ -127,16 +122,6 @@ Requires: real-%{name}%{?_isa} = %{version}-%{release}
 Requires: real-%{name}-libs%{?_isa} = %{version}-%{release}
 Requires: sh-utils
 Requires(pre): /usr/sbin/useradd
-# We require this to be present for %%{_prefix}/lib/tmpfiles.d
-Requires: systemd-units
-# Make sure it's there when scriptlets run, too
-Requires(post): systemd-units
-Requires(preun): systemd-units
-Requires(postun): systemd-units
-# This is actually needed for the %%triggerun script but Requires(triggerun)
-# is not valid.  We can use %%post because this particular %%triggerun script
-# should fire just after this package is installed.
-Requires(post): systemd-sysv
 # mysqlhotcopy needs DBI/DBD support
 Requires: perl-DBI, perl-DBD-MySQL
 Conflicts: MySQL-server
@@ -453,14 +438,9 @@ install -m 0755 -d $RPM_BUILD_ROOT/var/lib/mysql
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}
 install -m 0644 %{SOURCE3} $RPM_BUILD_ROOT%{_sysconfdir}/my.cnf
 
-# install systemd unit files and scripts for handling server startup
-mkdir -p ${RPM_BUILD_ROOT}%{_unitdir}
-install -m 644 %{SOURCE11} ${RPM_BUILD_ROOT}%{_unitdir}/
-install -m 755 %{SOURCE12} ${RPM_BUILD_ROOT}%{_libexecdir}/
-install -m 755 %{SOURCE13} ${RPM_BUILD_ROOT}%{_libexecdir}/
-
-mkdir -p $RPM_BUILD_ROOT%{_prefix}/lib/tmpfiles.d
-install -m 0644 %{SOURCE10} $RPM_BUILD_ROOT%{_prefix}/lib/tmpfiles.d/%{name}.conf
+# install init script for handling server startup
+mkdir -p $RPM_BUILD_ROOT/etc/rc.d/init.d
+install -m 755 %{SOURCE11} ${RPM_BUILD_ROOT}%{_sysconfdir}/rc.d/init.d/mysqld
 
 # Fix funny permissions that cmake build scripts apply to config files
 chmod 644 ${RPM_BUILD_ROOT}%{_datadir}/mysql/config.*.ini
@@ -530,62 +510,30 @@ rm -f ${RPM_BUILD_ROOT}%{_sysconfdir}/logrotate.d/mysql
 %post libs -p /sbin/ldconfig
 
 %post server
-# As soon as Fedora 17, which doesn't know %%systemd_post macro,
-# is retired, we can remove the check for availability of the macro
-# and the alternative code.
-# Let's keep it there now for anyone trying to build the package
-# for F17 on his own.
-%if 0%{?systemd_post:1}
-%systemd_post mysqld.service
-%else
 if [ $1 = 1 ]; then
     # Initial installation
-    /bin/systemctl daemon-reload >/dev/null 2>&1 || :
+    /sbin/chkconfig --add mysqld
 fi
-%endif
+
 /bin/chmod 0755 /var/lib/mysql
 /bin/touch /var/log/mysqld.log
-
-# Handle upgrading from SysV initscript to native systemd unit.
-# We can tell if a SysV version of mysql was previously installed by
-# checking to see if the initscript is present.
-%triggerun server -- mysql-server
-if [ -f /etc/rc.d/init.d/mysqld ]; then
-    # Save the current service runlevel info
-    # User must manually run systemd-sysv-convert --apply mysqld
-    # to migrate them to systemd targets
-    /usr/bin/systemd-sysv-convert --save mysqld >/dev/null 2>&1 || :
-
-    # Run these because the SysV package being removed won't do them
-    /sbin/chkconfig --del mysqld >/dev/null 2>&1 || :
-    /bin/systemctl try-restart mysqld.service >/dev/null 2>&1 || :
-fi
 
 %post embedded -p /sbin/ldconfig
 
 %preun server
-%if 0%{?systemd_preun:1}
-%systemd_preun mysqld.service
-%else
 if [ $1 = 0 ]; then
     # Package removal, not upgrade
-    /bin/systemctl --no-reload disable mysqld.service >/dev/null 2>&1 || :
-    /bin/systemctl stop mysqld.service >/dev/null 2>&1 || :
+    /sbin/service mysqld stop >/dev/null 2>&1
+    /sbin/chkconfig --del mysqld
 fi
-%endif
 
 %postun libs -p /sbin/ldconfig
 
 %postun server
-%if 0%{?systemd_postun_with_restart:1}
-%systemd_postun_with_restart mysqld.service
-%else
-/bin/systemctl daemon-reload >/dev/null 2>&1 || :
 if [ $1 -ge 1 ]; then
     # Package upgrade, not uninstall
-    /bin/systemctl try-restart mysqld.service >/dev/null 2>&1 || :
+    /sbin/service mysqld condrestart >/dev/null 2>&1 || :
 fi
-%endif
 
 %postun embedded -p /sbin/ldconfig
 
@@ -749,11 +697,8 @@ fi
 %{_datadir}/mysql/my-*.cnf
 %{_datadir}/mysql/config.*.ini
 
-%{_unitdir}/mysqld.service
-%{_libexecdir}/mysqld-prepare-db-dir
-%{_libexecdir}/mysqld-wait-ready
+%{_sysconfdir}/rc.d/init.d/mysqld
 
-%{_prefix}/lib/tmpfiles.d/%{name}.conf
 %attr(0755,mysql,mysql) %dir /var/run/mysqld
 %attr(0755,mysql,mysql) %dir /var/lib/mysql
 %attr(0640,mysql,mysql) %config(noreplace) %verify(not md5 size mtime) /var/log/mysqld.log
@@ -788,6 +733,9 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Wed Feb 20 2013 Honza Horak <hhorak@redhat.com> 5.5.29-6
+- Remove systemd unit file and use init script instead
+
 * Wed Feb 13 2013 Honza Horak <hhorak@redhat.com> 5.5.29-5
 - Suppress warnings in tests and skip tests also on ppc64p7
 - Do not obsolete mysql

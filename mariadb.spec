@@ -51,6 +51,7 @@ Patch12: mariadb-dh1024.patch
 Patch13: mariadb-man-plugin.patch
 Patch14: mariadb-buffer.patch
 
+BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildRequires: perl, readline-devel, openssl-devel
 BuildRequires: cmake, ncurses-devel, zlib-devel, libaio-devel
 # make test requires time and ps
@@ -326,6 +327,7 @@ export LDFLAGS
 
 cmake . -DBUILD_CONFIG=mysql_release \
 	-DFEATURE_SET="community" \
+	-DCMAKE_BUILD_TYPE=RelWithDebInfo \
 	-DINSTALL_LAYOUT=RPM \
 	-DCMAKE_INSTALL_PREFIX="%{_prefix}" \
 	-DINSTALL_INCLUDEDIR=include/mysql \
@@ -397,7 +399,9 @@ done
 %endif
 
 %install
-make DESTDIR=$RPM_BUILD_ROOT install
+rm -rf $RPM_BUILD_ROOT
+
+make DESTDIR=$RPM_BUILD_ROOT VERBOSE=1 install
 
 # List the installed tree for RPM package maintenance purposes.
 find $RPM_BUILD_ROOT -print | sed "s|^$RPM_BUILD_ROOT||" | sort > ROOTFILES
@@ -536,6 +540,7 @@ fi
 %postun embedded -p /sbin/ldconfig
 
 %files
+%defattr(-,root,root)
 %doc README COPYING COPYING.LESSER README.mysql-license
 %doc storage/innobase/COPYING.Percona storage/innobase/COPYING.Google
 %doc README.mysql-docs
@@ -578,6 +583,7 @@ fi
 %config(noreplace) %{_sysconfdir}/my.cnf.d/client.cnf
 
 %files libs
+%defattr(-,root,root)
 %doc README COPYING COPYING.LESSER README.mysql-license
 %doc storage/innobase/COPYING.Percona storage/innobase/COPYING.Google
 # although the default my.cnf contains only server settings, we put it in the
@@ -616,6 +622,7 @@ fi
 %{_datadir}/mysql/charsets
 
 %files server
+%defattr(-,root,root)
 %doc support-files/*.cnf
 
 %{_bindir}/myisamchk
@@ -703,17 +710,20 @@ fi
 %config(noreplace) %{_sysconfdir}/logrotate.d/mysqld
 
 %files devel
+%defattr(-,root,root)
 /usr/include/mysql
 /usr/share/aclocal/mysql.m4
 %{_libdir}/mysql/libmysqlclient.so
 %{_libdir}/mysql/libmysqlclient_r.so
 
 %files embedded
+%defattr(-,root,root)
 %doc README COPYING COPYING.LESSER README.mysql-license
 %doc storage/innobase/COPYING.Percona storage/innobase/COPYING.Google
 %{_libdir}/mysql/libmysqld.so.*
 
 %files embedded-devel
+%defattr(-,root,root)
 %{_libdir}/mysql/libmysqld.so
 %{_bindir}/mysql_client_test_embedded
 %{_bindir}/mysqltest_embedded
@@ -721,9 +731,11 @@ fi
 %{_mandir}/man1/mysqltest_embedded.1*
 
 %files bench
+%defattr(-,root,root)
 %{_datadir}/sql-bench
 
 %files test
+%defattr(-,root,root)
 %{_bindir}/mysql_client_test
 %{_bindir}/my_safe_process
 %attr(-,mysql,mysql) %{_datadir}/mysql-test
@@ -733,6 +745,7 @@ fi
 %changelog
 * Wed Feb 27 2013 Honza Horak <hhorak@redhat.com> 5.5.29-7
 - Remove BuildRequires on systemtap-sdt-devel
+- Using RHEL-5 specific macros
 
 * Wed Feb 20 2013 Honza Horak <hhorak@redhat.com> 5.5.29-6
 - Remove systemd unit file and use init script instead

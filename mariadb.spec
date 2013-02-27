@@ -1,6 +1,6 @@
 Name: mariadb
 Version: 5.5.29
-Release: 6%{?dist}
+Release: 7%{?dist}
 
 Summary: A community developed branch of MySQL
 Group: Applications/Databases
@@ -53,7 +53,6 @@ Patch14: mariadb-buffer.patch
 
 BuildRequires: perl, readline-devel, openssl-devel
 BuildRequires: cmake, ncurses-devel, zlib-devel, libaio-devel
-BuildRequires: systemtap-sdt-devel
 # make test requires time and ps
 BuildRequires: time procps
 # perl modules needed to run regression tests
@@ -343,7 +342,6 @@ cmake . -DBUILD_CONFIG=mysql_release \
 	-DMYSQL_DATADIR="/var/lib/mysql" \
 	-DMYSQL_UNIX_ADDR="/var/lib/mysql/mysql.sock" \
 	-DENABLED_LOCAL_INFILE=ON \
-	-DENABLE_DTRACE=ON \
 	-DWITH_EMBEDDED_SERVER=ON \
 	-DWITH_READLINE=ON \
 	-DWITH_SSL=system \
@@ -733,6 +731,9 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Wed Feb 27 2013 Honza Horak <hhorak@redhat.com> 5.5.29-7
+- Remove BuildRequires on systemtap-sdt-devel
+
 * Wed Feb 20 2013 Honza Horak <hhorak@redhat.com> 5.5.29-6
 - Remove systemd unit file and use init script instead
 

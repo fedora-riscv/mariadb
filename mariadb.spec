@@ -1,5 +1,5 @@
 Name: mariadb
-Version: 5.5.31
+Version: 5.5.32
 Release: 1%{?dist}
 
 Summary: A community developed branch of MySQL
@@ -27,8 +27,6 @@ Source12: mysqld-prepare-db-dir
 Source13: mysqld-wait-ready
 Source14: rh-skipped-tests-base.list
 Source15: rh-skipped-tests-arm.list
-# mysql_plugin is missing in mariadb tar ball
-Source16: mysql_plugin.1
 # Working around perl dependency checking bug in rpm FTTB. Remove later.
 Source999: filter-requires-mysql.sh
 
@@ -45,7 +43,6 @@ Patch9: mariadb-cipherspec.patch
 Patch10: mariadb-file-contents.patch
 Patch11: mariadb-string-overflow.patch
 Patch12: mariadb-dh1024.patch
-Patch13: mariadb-man-plugin.patch
 Patch14: mariadb-basedir.patch
 Patch15: mariadb-tmpdir.patch
 
@@ -217,6 +214,7 @@ MariaDB is a community developed branch of MySQL.
 
 Summary: The test suite distributed with MariaD
 Group: Applications/Databases
+Requires: perl(Socket), perl(Time::HiRes)
 Requires: perl(Data::Dumper), perl(Test::More), perl(Env)
 Requires: real-%{name}%{?_isa} = %{version}-%{release}
 Requires: real-%{name}-libs%{?_isa} = %{version}-%{release}
@@ -249,7 +247,6 @@ MariaDB is a community developed branch of MySQL.
 %patch10 -p1
 %patch11 -p1
 %patch12 -p1
-%patch13 -p1
 %patch14 -p1
 %patch15 -p1
 
@@ -269,9 +266,6 @@ cat %{SOURCE15} >> mysql-test/rh-skipped-tests.list
 %ifarch ppc ppc64 ppc64p7 s390 s390x
 echo "main.gis-precise : rhbz#906367" >> mysql-test/rh-skipped-tests.list
 %endif
-
-# install mysql_plugin
-cp -p %{SOURCE16} man/
 
 %build
 
@@ -484,6 +478,9 @@ rm -f ${RPM_BUILD_ROOT}%{_sysconfdir}/init.d/mysql
 
 # remove duplicate logrotate script
 rm -f ${RPM_BUILD_ROOT}%{_sysconfdir}/logrotate.d/mysql
+
+# remove solaris files
+rm -rf ${RPM_BUILD_ROOT}%{_datadir}/solaris/
 
 %pre server
 /usr/sbin/groupadd -g 27 -o -r mysql >/dev/null 2>&1 || :
@@ -750,6 +747,10 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Tue Aug 19 2013 Honza Horak <hhorak@redhat.com> 5.5.32-1
+- Rebase to 5.5.32
+  https://kb.askmonty.org/en/mariadb-5532-changelog/
+
 * Fri May 24 2013 Honza Horak <hhorak@redhat.com> 5.5.31-1
 - Rebase to 5.5.31
   https://kb.askmonty.org/en/mariadb-5531-changelog/

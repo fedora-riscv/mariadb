@@ -689,7 +689,7 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
-* Tue Aug 19 2013 Honza Horak <hhorak@redhat.com> 5.5.32-1
+* Tue Aug 20 2013 Honza Horak <hhorak@redhat.com> 5.5.32-1
 - Rebase to 5.5.32
   https://kb.askmonty.org/en/mariadb-5532-changelog/
 

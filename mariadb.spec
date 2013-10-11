@@ -773,6 +773,7 @@ fi
   https://kb.askmonty.org/en/mariadb-5533-changelog/
   https://kb.askmonty.org/en/mariadb-5533a-changelog/
 - Enable outfile_loaddata test
+- Disable tokudb_innodb_xa_crash test
 
 * Wed Aug 14 2013 Rex Dieter <rdieter@fedoraproject.org> 1:5.5.32-8
 - fix alternatives usage

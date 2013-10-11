@@ -772,6 +772,7 @@ fi
 - Rebase to 5.5.33a
   https://kb.askmonty.org/en/mariadb-5533-changelog/
   https://kb.askmonty.org/en/mariadb-5533a-changelog/
+- Enable outfile_loaddata test
 
 * Wed Aug 14 2013 Rex Dieter <rdieter@fedoraproject.org> 1:5.5.32-8
 - fix alternatives usage

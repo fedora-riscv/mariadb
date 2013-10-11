@@ -2,8 +2,8 @@
 %{!?_pkgdocdir: %global _pkgdocdir %{_docdir}/%{name}-%{version}}
 
 Name: mariadb
-Version: 5.5.32
-Release: 8%{?dist}
+Version: 5.5.33a
+Release: 1%{?dist}
 Epoch: 1
 
 Summary: A community developed branch of MySQL
@@ -60,9 +60,10 @@ Patch10: mariadb-file-contents.patch
 Patch11: mariadb-string-overflow.patch
 Patch12: mariadb-dh1024.patch
 Patch14: mariadb-basedir.patch
-Patch15: mariadb-tmpdir.patch
 Patch17: mariadb-covscan-signexpr.patch
 Patch18: mariadb-covscan-stroverflow.patch
+Patch19: mariadb-config.patch
+Patch20: mariadb-cmakehostname.patch
 
 BuildRequires: perl, readline-devel, openssl-devel
 BuildRequires: cmake, ncurses-devel, zlib-devel, libaio-devel
@@ -248,7 +249,7 @@ MariaDB is a community developed branch of MySQL.
 %prep
 %setup -q -n mariadb-%{version}
 
-%patch1 -p1
+%patch1 -p1 -b .p1
 %patch2 -p1
 %patch3 -p1
 %patch4 -p1
@@ -261,9 +262,10 @@ MariaDB is a community developed branch of MySQL.
 %patch11 -p1
 %patch12 -p1
 %patch14 -p1
-%patch15 -p1
 %patch17 -p1
 %patch18 -p1
+%patch19 -p1
+%patch20 -p1
 
 # workaround for upstream bug #56342
 rm -f mysql-test/t/ssl_8k_key-master.opt
@@ -338,7 +340,8 @@ cmake . -DBUILD_CONFIG=mysql_release \
 	-DWITH_READLINE=ON \
 	-DWITH_SSL=system \
 	-DWITH_ZLIB=system \
-	-DTMPDIR=/var/tmp \
+	-DWITH_JEMALLOC=no \
+	-DTMPDIR=%{_localstatedir}/tmp \
 	-DWITH_MYSQLD_LDFLAGS="-Wl,-z,relro,-z,now"
 
 make %{?_smp_mflags} VERBOSE=1
@@ -579,6 +582,7 @@ fi
 %{_bindir}/mysqlbinlog
 %{_bindir}/mysqlcheck
 %{_bindir}/mysqldump
+%{_bindir}/tokuftdump
 %{_bindir}/mysqlimport
 %{_bindir}/mysqlshow
 %{_bindir}/mysqlslap
@@ -672,6 +676,7 @@ fi
 %{_bindir}/resolveip
 
 %config(noreplace) %{_sysconfdir}/my.cnf.d/server.cnf
+%config(noreplace) %{_sysconfdir}/my.cnf.d/tokudb.cnf
 
 %{_libexecdir}/mysqld
 
@@ -763,6 +768,11 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Thu Oct 10 2013 Honza Horak <hhorak@redhat.com> 1:5.5.33a-1
+- Rebase to 5.5.33a
+  https://kb.askmonty.org/en/mariadb-5533-changelog/
+  https://kb.askmonty.org/en/mariadb-5533a-changelog/
+
 * Wed Aug 14 2013 Rex Dieter <rdieter@fedoraproject.org> 1:5.5.32-8
 - fix alternatives usage
 

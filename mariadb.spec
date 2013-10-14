@@ -66,7 +66,6 @@ Patch12: mariadb-dh1024.patch
 Patch14: mariadb-basedir.patch
 Patch17: mariadb-covscan-signexpr.patch
 Patch18: mariadb-covscan-stroverflow.patch
-Patch19: mariadb-config.patch
 Patch20: mariadb-cmakehostname.patch
 
 BuildRequires: perl, readline-devel, openssl-devel
@@ -268,7 +267,6 @@ MariaDB is a community developed branch of MySQL.
 %patch14 -p1
 %patch17 -p1
 %patch18 -p1
-%patch19 -p1
 %patch20 -p1
 
 # workaround for upstream bug #56342

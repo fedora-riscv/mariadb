@@ -16,7 +16,7 @@ URL: http://mariadb.org
 License: GPLv2 with exceptions and LGPLv2 and BSD
 
 # Regression tests take a long time, you can skip 'em with this
-%{!?runselftest:%global runselftest 0}
+%{!?runselftest:%global runselftest 1}
 
 Source0: http://ftp.osuosl.org/pub/mariadb/mariadb-%{version}/kvm-tarbake-jaunty-x86/mariadb-%{version}.tar.gz
 Source3: my.cnf

@@ -1,5 +1,9 @@
+# TokuDB engine is now part of MariaDB, but it is available only for x86_64;
+# variable tokudb allows to build with TokuDB storage engine
+%bcond_with tokudb
+
 Name: mariadb
-Version: 5.5.32
+Version: 5.5.33a
 Release: 1%{?dist}
 
 Summary: A community developed branch of MySQL
@@ -41,6 +45,9 @@ Patch10: mariadb-file-contents.patch
 Patch11: mariadb-string-overflow.patch
 Patch12: mariadb-dh1024.patch
 Patch14: mariadb-basedir.patch
+Patch17: mariadb-covscan-signexpr.patch
+Patch18: mariadb-covscan-stroverflow.patch
+Patch20: mariadb-cmakehostname.patch
 
 BuildRequires: perl, readline-devel, openssl-devel
 BuildRequires: cmake, ncurses-devel, zlib-devel, libaio-devel
@@ -232,6 +239,9 @@ MariaDB is a community developed branch of MySQL.
 %patch11 -p1
 %patch12 -p1
 %patch14 -p1
+%patch17 -p1
+%patch18 -p1
+%patch20 -p1
 
 # workaround for upstream bug #56342
 rm -f mysql-test/t/ssl_8k_key-master.opt
@@ -302,6 +312,8 @@ cmake . -DBUILD_CONFIG=mysql_release \
 	-DWITH_READLINE=ON \
 	-DWITH_SSL=system \
 	-DWITH_ZLIB=system \
+	-DWITH_JEMALLOC=no \
+%{!?with_tokudb:       -DWITHOUT_TOKUDB=ON}\
 	-DWITH_MYSQLD_LDFLAGS="-Wl,-z,relro,-z,now"
 
 make %{?_smp_mflags} VERBOSE=1
@@ -379,8 +391,8 @@ chmod 755 ${RPM_BUILD_ROOT}%{_bindir}/mysql_config
 
 # install INFO_SRC, INFO_BIN into libdir (upstream thinks these are doc files,
 # but that's pretty wacko --- see also mariadb-file-contents.patch)
-mv ${RPM_BUILD_ROOT}%{_docdir}/%{name}-%{version}/INFO_SRC ${RPM_BUILD_ROOT}%{_libdir}/mysql/
-mv ${RPM_BUILD_ROOT}%{_docdir}/%{name}-%{version}/INFO_BIN ${RPM_BUILD_ROOT}%{_libdir}/mysql/
+install -p -m 644 Docs/INFO_SRC ${RPM_BUILD_ROOT}%{_libdir}/mysql/
+install -p -m 644 Docs/INFO_BIN ${RPM_BUILD_ROOT}%{_libdir}/mysql/
 
 mkdir -p $RPM_BUILD_ROOT/var/log
 touch $RPM_BUILD_ROOT/var/log/mysqld.log
@@ -455,6 +467,14 @@ rm -f ${RPM_BUILD_ROOT}%{_sysconfdir}/init.d/mysql
 # remove duplicate logrotate script
 rm -f ${RPM_BUILD_ROOT}%{_sysconfdir}/logrotate.d/mysql
 
+# remove doc files that we rather pack using %%doc
+rm -f ${RPM_BUILD_ROOT}%{_datadir}/doc/COPYING
+rm -f ${RPM_BUILD_ROOT}%{_datadir}/doc/COPYING.LESSER
+rm -f ${RPM_BUILD_ROOT}%{_datadir}/doc/INFO_BIN
+rm -f ${RPM_BUILD_ROOT}%{_datadir}/doc/INFO_SRC
+rm -f ${RPM_BUILD_ROOT}%{_datadir}/doc/INSTALL-BINARY
+rm -f ${RPM_BUILD_ROOT}%{_datadir}/doc/README
+
 # remove solaris files
 rm -rf ${RPM_BUILD_ROOT}%{_datadir}/mysql/solaris/
 
@@ -508,6 +528,7 @@ fi
 %{_bindir}/mysqlbinlog
 %{_bindir}/mysqlcheck
 %{_bindir}/mysqldump
+%{?with_tokudb:%{_bindir}/tokuftdump}
 %{_bindir}/mysqlimport
 %{_bindir}/mysqlshow
 %{_bindir}/mysqlslap
@@ -602,6 +623,7 @@ fi
 %{_bindir}/resolveip
 
 %config(noreplace) %{_sysconfdir}/my.cnf.d/server.cnf
+%{?with_tokudb:%config(noreplace) %{_sysconfdir}/my.cnf.d/tokudb.cnf}
 
 %{_libexecdir}/mysqld
 
@@ -689,6 +711,13 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Thu Oct 10 2013 Honza Horak <hhorak@redhat.com> 1:5.5.33a-1
+- Rebase to 5.5.33a
+  https://kb.askmonty.org/en/mariadb-5533-changelog/
+  https://kb.askmonty.org/en/mariadb-5533a-changelog/
+- Enable outfile_loaddata test
+- Disable tokudb_innodb_xa_crash test
+
 * Tue Aug 20 2013 Honza Horak <hhorak@redhat.com> 5.5.32-1
 - Rebase to 5.5.32
   https://kb.askmonty.org/en/mariadb-5532-changelog/

@@ -24,7 +24,7 @@ License: GPLv2 with exceptions and LGPLv2 and BSD
 %global obsoleted_mysql_case_evr 5.5.30-5
 
 # Regression tests take a long time, you can skip 'em with this
-%{!?runselftest:%global runselftest 0}
+%{!?runselftest:%global runselftest 1}
 
 # When replacing mysql by mariadb these packages are not upated, but rather
 # installed and uninstalled. Thus we loose information about mysqld service

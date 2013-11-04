@@ -772,6 +772,8 @@ fi
 * Mon Nov  4 2013 Honza Horak <hhorak@redhat.com> 1:5.5.33a-3
 - Add pam-devel to build-requires in order to build
   Related: #1019945
+- Check if correct process is running in mysql-wait-ready script
+  Related: #1026313
 
 * Thu Oct 10 2013 Honza Horak <hhorak@redhat.com> 1:5.5.33a-1
 - Rebase to 5.5.33a

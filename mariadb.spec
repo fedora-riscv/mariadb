@@ -4,7 +4,7 @@
 
 Name: mariadb
 Version: 5.5.33a
-Release: 3%{?dist}
+Release: 4%{?dist}
 
 Summary: A community developed branch of MySQL
 Group: Applications/Databases
@@ -310,6 +310,13 @@ cmake . -DBUILD_CONFIG=mysql_release \
 	-DFEATURE_SET="community" \
 	-DINSTALL_LAYOUT=RPM \
 	-DCMAKE_INSTALL_PREFIX="%{_prefix}" \
+%if 0%{?fedora} >= 20
+	-DINSTALL_DOCDIR=share/doc/mariadb \
+	-DINSTALL_DOCREADMEDIR=share/doc/mariadb \
+%else
+	-DINSTALL_DOCDIR=share/doc/%{name}-%{version} \
+	-DINSTALL_DOCREADMEDIR=share/doc/%{name}-%{version} \
+%endif
 	-DINSTALL_INCLUDEDIR=include/mysql \
 	-DINSTALL_INFODIR=share/info \
 	-DINSTALL_LIBDIR="%{_lib}/mysql" \
@@ -769,6 +776,10 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Mon Nov  4 2013 Honza Horak <hhorak@redhat.com> 1:5.5.33a-4
+- Fix spec file to be ready for backport by Oden Eriksson
+  Resolves: #1026404
+
 * Mon Nov  4 2013 Honza Horak <hhorak@redhat.com> 1:5.5.33a-3
 - Add pam-devel to build-requires in order to build
   Related: #1019945

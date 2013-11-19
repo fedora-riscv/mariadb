@@ -268,6 +268,9 @@ cat %{SOURCE15} >> mysql-test/rh-skipped-tests.list
 %ifarch ppc ppc64 ppc64p7 s390 s390x
 echo "main.gis-precise : rhbz#906367" >> mysql-test/rh-skipped-tests.list
 %endif
+%ifarch i686 ppc64
+echo "main.mysql_client_test_nonblock : rhbz#1021450" >> mysql-test/rh-skipped-tests.list
+%endif
 
 %build
 

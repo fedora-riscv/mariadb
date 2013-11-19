@@ -1,10 +1,13 @@
+# In f20+ use unversioned docdirs, otherwise the old versioned one
+%{!?_pkgdocdir: %global _pkgdocdir %{_docdir}/%{name}-%{version}}
+
 # TokuDB engine is now part of MariaDB, but it is available only for x86_64;
 # variable tokudb allows to build with TokuDB storage engine
 %bcond_with tokudb
 
 Name: mariadb
 Version: 5.5.33a
-Release: 1%{?dist}
+Release: 5%{?dist}
 
 Summary: A community developed branch of MySQL
 Group: Applications/Databases
@@ -52,17 +55,22 @@ Patch20: mariadb-cmakehostname.patch
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildRequires: perl, readline-devel, openssl-devel
 BuildRequires: cmake, ncurses-devel, zlib-devel, libaio-devel
+%if 0%{?rhel}>=6 || 0%{?fedora}
+BuildRequires: systemtap-sdt-devel
+%endif
 # make test requires time and ps
 BuildRequires: time procps
+# auth_pam.so plugin will be build if pam-devel is installed
+BuildRequires: pam-devel
 # perl modules needed to run regression tests
 BuildRequires: perl(Socket), perl(Time::HiRes)
 BuildRequires: perl(Data::Dumper), perl(Test::More), perl(Env)
 
 Requires: real-%{name}-libs%{?_isa} = %{version}-%{release}
 Requires: grep, fileutils, bash
+Requires(post): %{_sbindir}/update-alternatives
+Requires(postun): %{_sbindir}/update-alternatives
 
-# MySQL (with caps) is upstream's spelling of their own RPMs for mysql
-Conflicts: MySQL
 # MariaDB replaces mysql packages
 Provides: mysql = %{version}-%{release}
 Provides: mysql%{?_isa} = %{version}-%{release}
@@ -112,6 +120,8 @@ Requires: real-%{name}%{?_isa} = %{version}-%{release}
 Requires: real-%{name}-libs%{?_isa} = %{version}-%{release}
 Requires: sh-utils
 Requires(pre): /usr/sbin/useradd
+Requires(post): %{_sbindir}/update-alternative
+Requires(postun): %{_sbindir}/update-alternatives
 # mysqlhotcopy needs DBI/DBD support
 Requires: perl-DBI, perl-DBD-MySQL
 Conflicts: MySQL-server
@@ -294,6 +304,13 @@ cmake . -DBUILD_CONFIG=mysql_release \
 	-DCMAKE_BUILD_TYPE=RelWithDebInfo \
 	-DINSTALL_LAYOUT=RPM \
 	-DCMAKE_INSTALL_PREFIX="%{_prefix}" \
+%if 0%{?fedora} >= 20
+	-DINSTALL_DOCDIR=share/doc/mariadb \
+	-DINSTALL_DOCREADMEDIR=share/doc/mariadb \
+%else
+	-DINSTALL_DOCDIR=share/doc/%{name}-%{version} \
+	-DINSTALL_DOCREADMEDIR=share/doc/%{name}-%{version} \
+%endif
 	-DINSTALL_INCLUDEDIR=include/mysql \
 	-DINSTALL_INFODIR=share/info \
 	-DINSTALL_LIBDIR="%{_lib}/mysql" \
@@ -301,19 +318,24 @@ cmake . -DBUILD_CONFIG=mysql_release \
 	-DINSTALL_MYSQLSHAREDIR=share/mysql \
 	-DINSTALL_MYSQLTESTDIR=share/mysql-test \
 	-DINSTALL_PLUGINDIR="%{_lib}/mysql/plugin" \
+	-DWITHOUT_DYNAMIC_PLUGINS=ON \
 	-DINSTALL_SBINDIR=libexec \
 	-DINSTALL_SCRIPTDIR=bin \
 	-DINSTALL_SQLBENCHDIR=share \
 	-DINSTALL_SUPPORTFILESDIR=share/mysql \
-	-DMYSQL_DATADIR="/var/lib/mysql" \
-	-DMYSQL_UNIX_ADDR="/var/lib/mysql/mysql.sock" \
+	-DMYSQL_DATADIR="%{_localstatedir}/lib/mysql" \
+	-DMYSQL_UNIX_ADDR="%{_localstatedir}/lib/mysql/mysql.sock" \
 	-DENABLED_LOCAL_INFILE=ON \
+%if 0%{?rhel}>=6 || 0%{?fedora}
+	-DENABLE_DTRACE=ON \
+%endif
 	-DWITH_EMBEDDED_SERVER=ON \
 	-DWITH_READLINE=ON \
 	-DWITH_SSL=system \
 	-DWITH_ZLIB=system \
 	-DWITH_JEMALLOC=no \
-%{!?with_tokudb:       -DWITHOUT_TOKUDB=ON}\
+%{!?with_tokudb:	-DWITHOUT_TOKUDB=ON}\
+	-DTMPDIR=%{_localstatedir}/tmp \
 	-DWITH_MYSQLD_LDFLAGS="-Wl,-z,relro,-z,now"
 
 make %{?_smp_mflags} VERBOSE=1
@@ -339,6 +361,7 @@ done
       ;;
   esac
   export MTR_BUILD_THREAD
+  export MTR_PARALLEL=1
 
   make test VERBOSE=1
 
@@ -355,7 +378,9 @@ done
     cd mysql-test
     perl ./mysql-test-run.pl --force --retry=0 --ssl \
 	--skip-test-list=rh-skipped-tests.list \
-	--suite-timeout=720 --testcase-timeout=30
+	--suite-timeout=720 --testcase-timeout=30 \
+	--mysqld=--binlog-format=mixed --force-restart \
+	--shutdown-timeout=60 
     # cmake build scripts will install the var cruft if left alone :-(
     rm -rf var
   ) 
@@ -372,9 +397,15 @@ find $RPM_BUILD_ROOT -print | sed "s|^$RPM_BUILD_ROOT||" | sort > ROOTFILES
 # multilib header hacks
 # we only apply this to known Red Hat multilib arches, per bug #181335
 case `uname -i` in
-  i386 | x86_64 | ppc | ppc64 | ppc64p7 | s390 | s390x | sparc | sparc64 )
+  i386 | x86_64 | ppc | ppc64 | ppc64p7 | s390 | s390x | sparc | sparc64 | aarch64 )
     mv $RPM_BUILD_ROOT%{_includedir}/mysql/my_config.h $RPM_BUILD_ROOT%{_includedir}/mysql/my_config_`uname -i`.h
     mv $RPM_BUILD_ROOT%{_includedir}/mysql/private/config.h $RPM_BUILD_ROOT%{_includedir}/mysql/private/my_config_`uname -i`.h
+    install -p -m 644 %{SOURCE5} $RPM_BUILD_ROOT%{_includedir}/mysql/
+    install -p -m 644 %{SOURCE5} $RPM_BUILD_ROOT%{_includedir}/mysql/private/config.h
+    ;;
+  arm* )
+    mv $RPM_BUILD_ROOT%{_includedir}/mysql/my_config.h $RPM_BUILD_ROOT%{_includedir}/mysql/my_config_arm.h
+    mv $RPM_BUILD_ROOT%{_includedir}/mysql/private/config.h $RPM_BUILD_ROOT%{_includedir}/mysql/private/my_config_arm.h
     install -p -m 644 %{SOURCE5} $RPM_BUILD_ROOT%{_includedir}/mysql/
     install -p -m 644 %{SOURCE5} $RPM_BUILD_ROOT%{_includedir}/mysql/private/config.h
     ;;
@@ -393,14 +424,14 @@ chmod 755 ${RPM_BUILD_ROOT}%{_bindir}/mysql_config
 
 # install INFO_SRC, INFO_BIN into libdir (upstream thinks these are doc files,
 # but that's pretty wacko --- see also mariadb-file-contents.patch)
-install -p -m 644 Docs/INFO_SRC ${RPM_BUILD_ROOT}%{_libdir}/mysql/
-install -p -m 644 Docs/INFO_BIN ${RPM_BUILD_ROOT}%{_libdir}/mysql/
+mv ${RPM_BUILD_ROOT}%{_pkgdocdir}/INFO_SRC ${RPM_BUILD_ROOT}%{_libdir}/mysql/
+mv ${RPM_BUILD_ROOT}%{_pkgdocdir}/INFO_BIN ${RPM_BUILD_ROOT}%{_libdir}/mysql/
 
 mkdir -p $RPM_BUILD_ROOT/var/log
 touch $RPM_BUILD_ROOT/var/log/mysqld.log
 
-mkdir -p $RPM_BUILD_ROOT/var/run/mysqld
-install -m 0755 -d $RPM_BUILD_ROOT/var/lib/mysql
+mkdir -p $RPM_BUILD_ROOT%{_localstatedir}/run/mysqld
+install -m 0755 -d $RPM_BUILD_ROOT%{_localstatedir}/lib/mysql
 
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}
 install -p -m 0644 %{SOURCE3} $RPM_BUILD_ROOT%{_sysconfdir}/my.cnf
@@ -409,15 +440,12 @@ install -p -m 0644 %{SOURCE3} $RPM_BUILD_ROOT%{_sysconfdir}/my.cnf
 mkdir -p $RPM_BUILD_ROOT/etc/rc.d/init.d
 install -p -m 755 %{SOURCE11} ${RPM_BUILD_ROOT}%{_sysconfdir}/rc.d/init.d/mysqld
 
-# Fix funny permissions that cmake build scripts apply to config files
-chmod 644 ${RPM_BUILD_ROOT}%{_datadir}/mysql/config.*.ini
-
 # Fix scripts for multilib safety
 mv ${RPM_BUILD_ROOT}%{_bindir}/mysql_config ${RPM_BUILD_ROOT}%{_libdir}/mysql/mysql_config
-ln -sf %{_libdir}/mysql/mysql_config ${RPM_BUILD_ROOT}%{_bindir}/mysql_config
+touch ${RPM_BUILD_ROOT}%{_bindir}/mysql_config
 
 mv ${RPM_BUILD_ROOT}%{_bindir}/mysqlbug ${RPM_BUILD_ROOT}%{_libdir}/mysql/mysqlbug
-ln -sf %{_libdir}/mysql/mysqlbug ${RPM_BUILD_ROOT}%{_bindir}/mysqlbug
+touch ${RPM_BUILD_ROOT}%{_bindir}/mysqlbug
 
 # Remove libmysqld.a
 rm -f ${RPM_BUILD_ROOT}%{_libdir}/mysql/libmysqld.a
@@ -444,6 +472,7 @@ rm -f ${RPM_BUILD_ROOT}%{_datadir}/mysql/mysql.server
 rm -f ${RPM_BUILD_ROOT}%{_datadir}/mysql/mysqld_multi.server
 rm -f ${RPM_BUILD_ROOT}%{_mandir}/man1/mysql-stress-test.pl.1*
 rm -f ${RPM_BUILD_ROOT}%{_mandir}/man1/mysql-test-run.pl.1*
+rm -f ${RPM_BUILD_ROOT}%{_bindir}/mytop
 
 # put logrotate script where it needs to be
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d
@@ -469,20 +498,19 @@ rm -f ${RPM_BUILD_ROOT}%{_sysconfdir}/init.d/mysql
 # remove duplicate logrotate script
 rm -f ${RPM_BUILD_ROOT}%{_sysconfdir}/logrotate.d/mysql
 
-# remove doc files that we rather pack using %%doc
-rm -f ${RPM_BUILD_ROOT}%{_datadir}/doc/COPYING
-rm -f ${RPM_BUILD_ROOT}%{_datadir}/doc/COPYING.LESSER
-rm -f ${RPM_BUILD_ROOT}%{_datadir}/doc/INFO_BIN
-rm -f ${RPM_BUILD_ROOT}%{_datadir}/doc/INFO_SRC
-rm -f ${RPM_BUILD_ROOT}%{_datadir}/doc/INSTALL-BINARY
-rm -f ${RPM_BUILD_ROOT}%{_datadir}/doc/README
-
 # remove solaris files
 rm -rf ${RPM_BUILD_ROOT}%{_datadir}/mysql/solaris/
 
+%clean
+rm -rf $RPM_BUILD_ROOT
+
+%post
+%{_sbindir}/update-alternatives --install %{_bindir}/mysql_config \
+	mysql_config %{_libdir}/mysql/mysql_config %{__isa_bits}
+
 %pre server
 /usr/sbin/groupadd -g 27 -o -r mysql >/dev/null 2>&1 || :
-/usr/sbin/useradd -M -N -g mysql -o -r -d /var/lib/mysql -s /bin/bash \
+/usr/sbin/useradd -M -N -g mysql -o -r -d %{_localstatedir}/lib/mysql -s /bin/bash \
 	-c "MariaDB Server" -u 27 mysql >/dev/null 2>&1 || :
 
 %post libs -p /sbin/ldconfig
@@ -492,11 +520,18 @@ if [ $1 = 1 ]; then
     # Initial installation
     /sbin/chkconfig --add mysqld
 fi
+/bin/chmod 0755 %{_localstatedir}/lib/mysql
+/bin/touch %{_localstatedir}/log/mysqld.log
 
-/bin/chmod 0755 /var/lib/mysql
-/bin/touch /var/log/mysqld.log
+%{_sbindir}/update-alternatives --install %{_bindir}/mysqlbug \
+	mysqlbug %{_libdir}/mysql/mysqlbug %{__isa_bits}
 
 %post embedded -p /sbin/ldconfig
+
+%postun
+if [ $1 -eq 0 ] ; then
+    %{_sbindir}/update-alternatives --remove mysql_config %{_libdir}/mysql/mysql_config
+fi
 
 %preun server
 if [ $1 = 0 ]; then
@@ -508,6 +543,9 @@ fi
 %postun libs -p /sbin/ldconfig
 
 %postun server
+if [ $1 -eq 0 ] ; then
+    %{_sbindir}/update-alternatives --remove mysqlbug %{_libdir}/mysql/mysqlbug
+fi
 if [ $1 -ge 1 ]; then
     # Package upgrade, not uninstall
     /sbin/service mysqld condrestart >/dev/null 2>&1 || :
@@ -523,7 +561,7 @@ fi
 
 %{_bindir}/msql2mysql
 %{_bindir}/mysql
-%{_bindir}/mysql_config
+%ghost %{_bindir}/mysql_config
 %{_bindir}/mysql_find_rows
 %{_bindir}/mysql_waitpid
 %{_bindir}/mysqlaccess
@@ -536,7 +574,6 @@ fi
 %{_bindir}/mysqlshow
 %{_bindir}/mysqlslap
 %{_bindir}/my_print_defaults
-%{_bindir}/mytop
 %{_bindir}/aria_chk
 %{_bindir}/aria_dump_log
 %{_bindir}/aria_ftdump
@@ -615,7 +652,7 @@ fi
 %{_bindir}/mysql_tzinfo_to_sql
 %{_bindir}/mysql_upgrade
 %{_bindir}/mysql_zap
-%{_bindir}/mysqlbug
+%ghost %{_bindir}/mysqlbug
 %{_bindir}/mysqldumpslow
 %{_bindir}/mysqld_multi
 %{_bindir}/mysqld_safe
@@ -682,15 +719,15 @@ fi
 
 %{_sysconfdir}/rc.d/init.d/mysqld
 
-%attr(0755,mysql,mysql) %dir /var/run/mysqld
-%attr(0755,mysql,mysql) %dir /var/lib/mysql
-%attr(0640,mysql,mysql) %config(noreplace) %verify(not md5 size mtime) /var/log/mysqld.log
+%attr(0755,mysql,mysql) %dir %{_localstatedir}/run/mysqld
+%attr(0755,mysql,mysql) %dir %{_localstatedir}/lib/mysql
+%attr(0640,mysql,mysql) %config(noreplace) %verify(not md5 size mtime) %{_localstatedir}/log/mysqld.log
 %config(noreplace) %{_sysconfdir}/logrotate.d/mysqld
 
 %files devel
 %defattr(-,root,root)
-/usr/include/mysql
-/usr/share/aclocal/mysql.m4
+%{_includedir}/mysql
+%{_datadir}/aclocal/mysql.m4
 %{_libdir}/mysql/libmysqlclient.so
 %{_libdir}/mysql/libmysqlclient_r.so
 
@@ -721,31 +758,141 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
-* Thu Oct 10 2013 Honza Horak <hhorak@redhat.com> 1:5.5.33a-1
-- Rebase to 5.5.33a
-  https://kb.askmonty.org/en/mariadb-5533-changelog/
-  https://kb.askmonty.org/en/mariadb-5533a-changelog/
-- Enable outfile_loaddata test
-- Disable tokudb_innodb_xa_crash test
+* Tue Nov 19 2013 Honza Horak <hhorak@redhat.com> 1:5.5.33a-5
+- Merge couple of changes from Fedora Rawhide
 
-* Tue Aug 20 2013 Honza Horak <hhorak@redhat.com> 5.5.32-1
+* Mon Nov  4 2013 Honza Horak <hhorak@redhat.com> 1:5.5.33a-4
+- Fix spec file to be ready for backport by Oden Eriksson
+  Resolves: #1026404
+
+* Mon Nov  4 2013 Honza Horak <hhorak@redhat.com> 1:5.5.33a-3
+- Add pam-devel to build-requires in order to build
+  Related: #1019945
+- Check if correct process is running in mysql-wait-ready script
+  Related: #1026313
+
+* Mon Oct 14 2013 Honza Horak <hhorak@redhat.com> 1:5.5.33a-2
+- Turn on test suite
+
+* Mon Sep  2 2013 Honza Horak <hhorak@redhat.com> - 1:5.5.32-12
+- Re-organize my.cnf to include only generic settings
+  Resolves: #1003115
+- Move pid file location to /var/run/mariadb
+- Make mysqld a symlink to mariadb unit file rather than the opposite way
+  Related: #999589
+
+* Thu Aug 29 2013 Honza Horak <hhorak@redhat.com> - 1:5.5.32-11
+- Move log file into /var/log/mariadb/mariadb.log
+- Rename logrotate script to mariadb
+- Resolves: #999589
+
+* Wed Aug 14 2013 Rex Dieter <rdieter@fedoraproject.org> 1:5.5.32-10
+- fix alternatives usage
+
+* Tue Aug 13 2013 Honza Horak <hhorak@redhat.com> - 1:5.5.32-9
+- Multilib issues solved by alternatives
+  Resolves: #986959
+
+* Sat Aug 03 2013 Petr Pisar <ppisar@redhat.com> - 1:5.5.32-8
+- Perl 5.18 rebuild
+
+* Wed Jul 31 2013 Honza Horak <hhorak@redhat.com> - 1:5.5.32-7
+- Do not use login shell for mysql user
+
+* Tue Jul 30 2013 Honza Horak <hhorak@redhat.com> - 1:5.5.32-6
+- Remove unneeded systemd-sysv requires
+- Provide mysql-compat-server symbol
+- Create mariadb.service symlink
+- Fix multilib header location for arm
+- Enhance documentation in the unit file
+- Use scriptstub instead of links to avoid multilib conflicts
+- Add condition for doc placement in F20+
+
+* Sun Jul 28 2013 Dennis Gilmore <dennis@ausil.us> - 1:5.5.32-5
+- remove "Requires(pretrans): systemd" since its not possible
+- when installing mariadb and systemd at the same time. as in a new install
+
+* Sat Jul 27 2013 Kevin Fenzi <kevin@scrye.com> 1:5.5.32-4
+- Set rpm doc macro to install docs in unversioned dir
+
+* Fri Jul 26 2013 Dennis Gilmore <dennis@ausil.us> 1:5.5.32-3
+- add Requires(pre) on systemd for the server package
+
+* Tue Jul 23 2013 Dennis Gilmore <dennis@ausil.us> 1:5.5.32-2
+- replace systemd-units requires with systemd
+- remove solaris files
+
+* Fri Jul 19 2013 Honza Horak <hhorak@redhat.com> 1:5.5.32-1
 - Rebase to 5.5.32
   https://kb.askmonty.org/en/mariadb-5532-changelog/
+- Clean-up un-necessary systemd snippets
 
-* Mon Jun  3 2013 Honza Horak <hhorak@redhat.com> 5.5.31-1
+* Wed Jul 17 2013 Petr Pisar <ppisar@redhat.com> - 1:5.5.31-7
+- Perl 5.18 rebuild
+
+* Mon Jul  1 2013 Honza Horak <hhorak@redhat.com> 1:5.5.31-6
+- Test suite params enhanced to decrease server condition influence
+- Fix misleading error message when uninstalling built-in plugins
+  Related: #966873
+
+* Thu Jun 27 2013 Honza Horak <hhorak@redhat.com> 1:5.5.31-5
+- Apply fixes found by Coverity static analysis tool
+
+* Wed Jun 19 2013 Honza Horak <hhorak@redhat.com> 1:5.5.31-4
+- Do not use pretrans scriptlet, which doesn't work in anaconda
+  Resolves: #975348
+
+* Fri Jun 14 2013 Honza Horak <hhorak@redhat.com> 1:5.5.31-3
+- Explicitly enable mysqld if it was enabled in the beggining
+  of the transaction.
+
+* Thu Jun 13 2013 Honza Horak <hhorak@redhat.com> 1:5.5.31-2
+- Apply man page fix from Jan Stanek
+
+* Fri May 24 2013 Honza Horak <hhorak@redhat.com> 1:5.5.31-1
 - Rebase to 5.5.31
   https://kb.askmonty.org/en/mariadb-5531-changelog/
+- Preserve time-stamps in case of installed files
+- Use /var/tmp instead of /tmp, since the later is using tmpfs,
+  which can cause problems
+  Resolves: #962087
+- Fix test suite requirements
 
-* Wed Feb 27 2013 Honza Horak <hhorak@redhat.com> 5.5.29-7
-- Remove BuildRequires on systemtap-sdt-devel
-- Using RHEL-5 specific macros
+* Sun May  5 2013 Honza Horak <hhorak@redhat.com> 1:5.5.30-2
+- Remove mytop utility, which is packaged separately
+- Resolve multilib conflicts in mysql/private/config.h
 
-* Wed Feb 20 2013 Honza Horak <hhorak@redhat.com> 5.5.29-6
-- Remove systemd unit file and use init script instead
+* Fri Mar 22 2013 Honza Horak <hhorak@redhat.com> 1:5.5.30-1
+- Rebase to 5.5.30
+  https://kb.askmonty.org/en/mariadb-5530-changelog/
+
+* Fri Mar 22 2013 Honza Horak <hhorak@redhat.com> 1:5.5.29-11
+- Obsolete MySQL since it is now renamed to community-mysql
+- Remove real- virtual names
+
+* Thu Mar 21 2013 Honza Horak <hhorak@redhat.com> 1:5.5.29-10
+- Adding epoch to have higher priority than other mysql implementations
+  when comes to provider comparison
+
+* Wed Mar 13 2013 Honza Horak <hhorak@redhat.com> 5.5.29-9
+- Let mariadb-embedded-devel conflict with MySQL-embedded-devel
+- Adjust mariadb-sortbuffer.patch to correspond with upstream patch
+
+* Mon Mar  4 2013 Honza Horak <hhorak@redhat.com> 5.5.29-8
+- Mask expected warnings about setrlimit in test suite
+
+* Thu Feb 28 2013 Honza Horak <hhorak@redhat.com> 5.5.29-7
+- Use configured prefix value instead of guessing basedir
+  in mysql_config
+Resolves: #916189
+- Export dynamic columns and non-blocking API functions documented
+  by upstream
+
+* Wed Feb 27 2013 Honza Horak <hhorak@redhat.com> 5.5.29-6
+- Fix sort_buffer_length option type
 
 * Wed Feb 13 2013 Honza Horak <hhorak@redhat.com> 5.5.29-5
 - Suppress warnings in tests and skip tests also on ppc64p7
-- Do not obsolete mysql
 
 * Tue Feb 12 2013 Honza Horak <hhorak@redhat.com> 5.5.29-4
 - Suppress warning in tests on ppc
@@ -767,6 +914,9 @@ fi
   https://kb.askmonty.org/en/mariadb-5529-changelog/
 - Fix inaccurate default for socket location in mysqld-wait-ready
   Resolves: #890535
+
+* Thu Jan 31 2013 Honza Horak <hhorak@redhat.com> 5.5.28a-8
+- Enable obsoleting mysql
 
 * Wed Jan 30 2013 Honza Horak <hhorak@redhat.com> 5.5.28a-7
 - Adding necessary hacks for perl dependency checking, rpm is still

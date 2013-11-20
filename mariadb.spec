@@ -7,7 +7,7 @@
 
 Name: mariadb
 Version: 5.5.33a
-Release: 5%{?dist}
+Release: 6%{?dist}
 
 Summary: A community developed branch of MySQL
 Group: Applications/Databases
@@ -267,9 +267,6 @@ cat %{SOURCE15} >> mysql-test/rh-skipped-tests.list
 # disable some tests failing on ppc and s390
 %ifarch ppc ppc64 ppc64p7 s390 s390x
 echo "main.gis-precise : rhbz#906367" >> mysql-test/rh-skipped-tests.list
-%endif
-%ifarch i686 ppc64
-echo "main.mysql_client_test_nonblock : rhbz#1021450" >> mysql-test/rh-skipped-tests.list
 %endif
 
 %build
@@ -745,6 +742,9 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Wed Nov 20 2013 Honza Horak <hhorak@redhat.com> 1:5.5.33a-6
+- Allow main.mysql_client_test_nonblock test
+
 * Tue Nov 19 2013 Honza Horak <hhorak@redhat.com> 1:5.5.33a-5
 - Merge couple of changes from Fedora Rawhide
 

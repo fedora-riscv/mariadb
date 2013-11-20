@@ -319,7 +319,6 @@ cmake . -DBUILD_CONFIG=mysql_release \
 	-DINSTALL_MYSQLSHAREDIR=share/mysql \
 	-DINSTALL_MYSQLTESTDIR=share/mysql-test \
 	-DINSTALL_PLUGINDIR="%{_lib}/mysql/plugin" \
-	-DWITHOUT_DYNAMIC_PLUGINS=ON \
 	-DINSTALL_SBINDIR=libexec \
 	-DINSTALL_SCRIPTDIR=bin \
 	-DINSTALL_SQLBENCHDIR=share \

@@ -503,7 +503,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %post
 %{_sbindir}/update-alternatives --install %{_bindir}/mysql_config \
-	mysql_config %{_libdir}/mysql/mysql_config %{__isa_bits}
+	mysql_config %{_libdir}/mysql/mysql_config %{_arch}
 
 %pre server
 /usr/sbin/groupadd -g 27 -o -r mysql >/dev/null 2>&1 || :
@@ -521,7 +521,7 @@ fi
 /bin/touch %{_localstatedir}/log/mysqld.log
 
 %{_sbindir}/update-alternatives --install %{_bindir}/mysqlbug \
-	mysqlbug %{_libdir}/mysql/mysqlbug %{__isa_bits}
+	mysqlbug %{_libdir}/mysql/mysqlbug %{_arch}
 
 %post embedded -p /sbin/ldconfig
 

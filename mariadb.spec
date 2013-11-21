@@ -312,7 +312,7 @@ cmake . -DBUILD_CONFIG=mysql_release \
 	-DINSTALL_INFODIR=share/info \
 	-DINSTALL_LIBDIR="%{_lib}/mysql" \
 	-DINSTALL_MANDIR=share/man \
-	-DINSTALL_MYSQLSHAREDIR=share/mysql \
+	-DINSTALL_MYSQLSHAREDIR=share/%{name} \
 	-DINSTALL_MYSQLTESTDIR=share/mysql-test \
 	-DINSTALL_PLUGINDIR="%{_lib}/mysql/plugin" \
 	-DWITHOUT_DYNAMIC_PLUGINS=ON \
@@ -606,31 +606,31 @@ fi
 %{_libdir}/mysql/libmysqlclient.so.*
 %{_sysconfdir}/ld.so.conf.d/*
 
-%dir %{_datadir}/mysql
-%{_datadir}/mysql/english
-%lang(cs) %{_datadir}/mysql/czech
-%lang(da) %{_datadir}/mysql/danish
-%lang(nl) %{_datadir}/mysql/dutch
-%lang(et) %{_datadir}/mysql/estonian
-%lang(fr) %{_datadir}/mysql/french
-%lang(de) %{_datadir}/mysql/german
-%lang(el) %{_datadir}/mysql/greek
-%lang(hu) %{_datadir}/mysql/hungarian
-%lang(it) %{_datadir}/mysql/italian
-%lang(ja) %{_datadir}/mysql/japanese
-%lang(ko) %{_datadir}/mysql/korean
-%lang(no) %{_datadir}/mysql/norwegian
-%lang(no) %{_datadir}/mysql/norwegian-ny
-%lang(pl) %{_datadir}/mysql/polish
-%lang(pt) %{_datadir}/mysql/portuguese
-%lang(ro) %{_datadir}/mysql/romanian
-%lang(ru) %{_datadir}/mysql/russian
-%lang(sr) %{_datadir}/mysql/serbian
-%lang(sk) %{_datadir}/mysql/slovak
-%lang(es) %{_datadir}/mysql/spanish
-%lang(sv) %{_datadir}/mysql/swedish
-%lang(uk) %{_datadir}/mysql/ukrainian
-%{_datadir}/mysql/charsets
+%dir %{_datadir}/%{name}
+%{_datadir}/%{name}/english
+%lang(cs) %{_datadir}/%{name}/czech
+%lang(da) %{_datadir}/%{name}/danish
+%lang(nl) %{_datadir}/%{name}/dutch
+%lang(et) %{_datadir}/%{name}/estonian
+%lang(fr) %{_datadir}/%{name}/french
+%lang(de) %{_datadir}/%{name}/german
+%lang(el) %{_datadir}/%{name}/greek
+%lang(hu) %{_datadir}/%{name}/hungarian
+%lang(it) %{_datadir}/%{name}/italian
+%lang(ja) %{_datadir}/%{name}/japanese
+%lang(ko) %{_datadir}/%{name}/korean
+%lang(no) %{_datadir}/%{name}/norwegian
+%lang(no) %{_datadir}/%{name}/norwegian-ny
+%lang(pl) %{_datadir}/%{name}/polish
+%lang(pt) %{_datadir}/%{name}/portuguese
+%lang(ro) %{_datadir}/%{name}/romanian
+%lang(ru) %{_datadir}/%{name}/russian
+%lang(sr) %{_datadir}/%{name}/serbian
+%lang(sk) %{_datadir}/%{name}/slovak
+%lang(es) %{_datadir}/%{name}/spanish
+%lang(sv) %{_datadir}/%{name}/swedish
+%lang(uk) %{_datadir}/%{name}/ukrainian
+%{_datadir}/%{name}/charsets
 
 %files server
 %defattr(-,root,root)
@@ -705,12 +705,12 @@ fi
 %{_mandir}/man1/mysql_tzinfo_to_sql.1*
 %{_mandir}/man8/mysqld.8*
 
-%{_datadir}/mysql/errmsg-utf8.txt
-%{_datadir}/mysql/fill_help_tables.sql
-%{_datadir}/mysql/mysql_system_tables.sql
-%{_datadir}/mysql/mysql_system_tables_data.sql
-%{_datadir}/mysql/mysql_test_data_timezone.sql
-%{_datadir}/mysql/mysql_performance_tables.sql
+%{_datadir}/%{name}/errmsg-utf8.txt
+%{_datadir}/%{name}/fill_help_tables.sql
+%{_datadir}/%{name}/mysql_system_tables.sql
+%{_datadir}/%{name}/mysql_system_tables_data.sql
+%{_datadir}/%{name}/mysql_test_data_timezone.sql
+%{_datadir}/%{name}/mysql_performance_tables.sql
 %{_datadir}/mysql/my-*.cnf
 %{_datadir}/mysql/config.*.ini
 

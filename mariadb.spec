@@ -7,7 +7,7 @@
 
 Name: mariadb
 Version: 5.5.33a
-Release: 5%{?dist}
+Release: 6%{?dist}
 
 Summary: A community developed branch of MySQL
 Group: Applications/Databases
@@ -292,9 +292,6 @@ CFLAGS=`echo $CFLAGS| sed -e "s|-O2|-O1|g" `
 %endif
 CXXFLAGS="$CFLAGS"
 export CFLAGS CXXFLAGS
-# building with PIE
-LDFLAGS="$LDFLAGS -pie"
-export LDFLAGS
 
 # The INSTALL_xxx macros have to be specified relative to CMAKE_INSTALL_PREFIX
 # so we can't use %%{_datadir} and so forth here.
@@ -758,6 +755,9 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Thu Nov 21 2013 Honza Horak <hhorak@redhat.com> 1:5.5.33a-6
+- Disable PIE, it doesn't seem to work fine in RHEL-5
+
 * Tue Nov 19 2013 Honza Horak <hhorak@redhat.com> 1:5.5.33a-5
 - Merge couple of changes from Fedora Rawhide
 

@@ -6,8 +6,8 @@
 %bcond_with tokudb
 
 Name: mariadb
-Version: 5.5.33a
-Release: 6%{?dist}
+Version: 5.5.34
+Release: 1%{?dist}
 
 Summary: A community developed branch of MySQL
 Group: Applications/Databases
@@ -50,7 +50,6 @@ Patch12: mariadb-dh1024.patch
 Patch14: mariadb-basedir.patch
 Patch17: mariadb-covscan-signexpr.patch
 Patch18: mariadb-covscan-stroverflow.patch
-Patch20: mariadb-cmakehostname.patch
 
 BuildRequires: perl, readline-devel, openssl-devel
 BuildRequires: cmake, ncurses-devel, zlib-devel, libaio-devel
@@ -250,7 +249,6 @@ MariaDB is a community developed branch of MySQL.
 %patch14 -p1
 %patch17 -p1
 %patch18 -p1
-%patch20 -p1
 
 # workaround for upstream bug #56342
 rm -f mysql-test/t/ssl_8k_key-master.opt
@@ -742,6 +740,9 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Mon Nov 25 2013 Honza Horak <hhorak@redhat.com> 1:5.5.34-1
+- Rebase to 5.5.34
+
 * Wed Nov 20 2013 Honza Horak <hhorak@redhat.com> 1:5.5.33a-6
 - Allow main.mysql_client_test_nonblock test
 

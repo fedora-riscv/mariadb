@@ -5,9 +5,18 @@
 # variable tokudb allows to build with TokuDB storage engine
 %bcond_with tokudb
 
+# RHEL-5 doesn't know __isa_bits macro, so let's define it manually
+%{!?__isa_bits:
+  %ifarch x86_64 ppc64 ppc64p7 s390x sparc64
+    %global __isa_bits 64
+  %else
+    %global __isa_bits 32
+  %endif
+}
+
 Name: mariadb
 Version: 5.5.34
-Release: 1%{?dist}
+Release: 2%{?dist}
 
 Summary: A community developed branch of MySQL
 Group: Applications/Databases
@@ -501,7 +510,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %post
 %{_sbindir}/update-alternatives --install %{_bindir}/mysql_config \
-	mysql_config %{_libdir}/mysql/mysql_config %{_arch}
+	mysql_config %{_libdir}/mysql/mysql_config %{__isa_bits}
 
 %pre server
 /usr/sbin/groupadd -g 27 -o -r mysql >/dev/null 2>&1 || :
@@ -519,7 +528,7 @@ fi
 /bin/touch %{_localstatedir}/log/mysqld.log
 
 %{_sbindir}/update-alternatives --install %{_bindir}/mysqlbug \
-	mysqlbug %{_libdir}/mysql/mysqlbug %{_arch}
+	mysqlbug %{_libdir}/mysql/mysqlbug %{__isa_bits}
 
 %post embedded -p /sbin/ldconfig
 
@@ -753,6 +762,9 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Mon Nov 25 2013 Honza Horak <hhorak@redhat.com> 1:5.5.34-2
+- Use proper priority for alternatives
+
 * Mon Nov 25 2013 Honza Horak <hhorak@redhat.com> 1:5.5.34-1
 - Rebase to 5.5.34
 

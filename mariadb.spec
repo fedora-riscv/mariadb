@@ -5,18 +5,9 @@
 # variable tokudb allows to build with TokuDB storage engine
 %bcond_with tokudb
 
-# RHEL-5 doesn't know __isa_bits macro, so let's define it manually
-%{!?__isa_bits:
-  %ifarch x86_64 ppc64 ppc64p7 s390x sparc64
-    %global __isa_bits 64
-  %else
-    %global __isa_bits 32
-  %endif
-}
-
 Name: mariadb
 Version: 5.5.34
-Release: 2%{?dist}
+Release: 3%{?dist}
 
 Summary: A community developed branch of MySQL
 Group: Applications/Databases
@@ -32,6 +23,7 @@ License: GPLv2 with exceptions and LGPLv2 and BSD
 
 Source0: http://ftp.osuosl.org/pub/mariadb/mariadb-%{version}/kvm-tarbake-jaunty-x86/mariadb-%{version}.tar.gz
 Source3: my.cnf
+Source4: scriptstub.c
 Source5: my_config.h
 Source6: README.mysql-docs
 Source7: README.mysql-license
@@ -76,8 +68,6 @@ BuildRequires: perl(Data::Dumper), perl(Test::More), perl(Env)
 
 Requires: real-%{name}-libs%{?_isa} = %{version}-%{release}
 Requires: grep, fileutils, bash
-Requires(post): %{_sbindir}/update-alternatives
-Requires(postun): %{_sbindir}/update-alternatives
 
 # MariaDB replaces mysql packages
 Provides: mysql = %{version}-%{release}
@@ -128,8 +118,6 @@ Requires: real-%{name}%{?_isa} = %{version}-%{release}
 Requires: real-%{name}-libs%{?_isa} = %{version}-%{release}
 Requires: sh-utils
 Requires(pre): /usr/sbin/useradd
-Requires(post): %{_sbindir}/update-alternatives
-Requires(postun): %{_sbindir}/update-alternatives
 # mysqlhotcopy needs DBI/DBD support
 Requires: perl-DBI, perl-DBD-MySQL
 Conflicts: MySQL-server
@@ -342,6 +330,8 @@ cmake . -DBUILD_CONFIG=mysql_release \
 	-DTMPDIR=%{_localstatedir}/tmp \
 	-DWITH_MYSQLD_LDFLAGS="-Wl,-z,relro,-z,now"
 
+gcc $CFLAGS $LDFLAGS -o scriptstub "-DLIBDIR=\"%{_libdir}/mysql\"" %{SOURCE4}
+
 make %{?_smp_mflags} VERBOSE=1
 
 # debuginfo extraction scripts fail to find source files in their real
@@ -446,10 +436,10 @@ install -p -m 755 %{SOURCE11} ${RPM_BUILD_ROOT}%{_sysconfdir}/rc.d/init.d/mysqld
 
 # Fix scripts for multilib safety
 mv ${RPM_BUILD_ROOT}%{_bindir}/mysql_config ${RPM_BUILD_ROOT}%{_libdir}/mysql/mysql_config
-touch ${RPM_BUILD_ROOT}%{_bindir}/mysql_config
+install -m 0755 scriptstub ${RPM_BUILD_ROOT}%{_bindir}/mysql_config
 
 mv ${RPM_BUILD_ROOT}%{_bindir}/mysqlbug ${RPM_BUILD_ROOT}%{_libdir}/mysql/mysqlbug
-touch ${RPM_BUILD_ROOT}%{_bindir}/mysqlbug
+install -m 0755 scriptstub ${RPM_BUILD_ROOT}%{_bindir}/mysqlbug
 
 # Remove libmysqld.a
 rm -f ${RPM_BUILD_ROOT}%{_libdir}/mysql/libmysqld.a
@@ -508,10 +498,6 @@ rm -rf ${RPM_BUILD_ROOT}%{_datadir}/mysql/solaris/
 %clean
 rm -rf $RPM_BUILD_ROOT
 
-%post
-%{_sbindir}/update-alternatives --install %{_bindir}/mysql_config \
-	mysql_config %{_libdir}/mysql/mysql_config %{__isa_bits}
-
 %pre server
 /usr/sbin/groupadd -g 27 -o -r mysql >/dev/null 2>&1 || :
 /usr/sbin/useradd -M -N -g mysql -o -r -d %{_localstatedir}/lib/mysql -s /bin/bash \
@@ -527,15 +513,7 @@ fi
 /bin/chmod 0755 %{_localstatedir}/lib/mysql
 /bin/touch %{_localstatedir}/log/mysqld.log
 
-%{_sbindir}/update-alternatives --install %{_bindir}/mysqlbug \
-	mysqlbug %{_libdir}/mysql/mysqlbug %{__isa_bits}
-
 %post embedded -p /sbin/ldconfig
-
-%postun
-if [ $1 -eq 0 ] ; then
-    %{_sbindir}/update-alternatives --remove mysql_config %{_libdir}/mysql/mysql_config
-fi
 
 %preun server
 if [ $1 = 0 ]; then
@@ -547,9 +525,6 @@ fi
 %postun libs -p /sbin/ldconfig
 
 %postun server
-if [ $1 -eq 0 ] ; then
-    %{_sbindir}/update-alternatives --remove mysqlbug %{_libdir}/mysql/mysqlbug
-fi
 if [ $1 -ge 1 ]; then
     # Package upgrade, not uninstall
     /sbin/service mysqld condrestart >/dev/null 2>&1 || :
@@ -565,7 +540,7 @@ fi
 
 %{_bindir}/msql2mysql
 %{_bindir}/mysql
-%ghost %{_bindir}/mysql_config
+%{_bindir}/mysql_config
 %{_bindir}/mysql_find_rows
 %{_bindir}/mysql_waitpid
 %{_bindir}/mysqlaccess
@@ -656,7 +631,7 @@ fi
 %{_bindir}/mysql_tzinfo_to_sql
 %{_bindir}/mysql_upgrade
 %{_bindir}/mysql_zap
-%ghost %{_bindir}/mysqlbug
+%{_bindir}/mysqlbug
 %{_bindir}/mysqldumpslow
 %{_bindir}/mysqld_multi
 %{_bindir}/mysqld_safe
@@ -762,6 +737,9 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Tue Nov 26 2013 Honza Horak <hhorak@redhat.com> 1:5.5.34-3
+- Remove alternatives, use old good scriptstub
+
 * Mon Nov 25 2013 Honza Horak <hhorak@redhat.com> 1:5.5.34-2
 - Use proper priority for alternatives
 

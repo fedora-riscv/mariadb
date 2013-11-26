@@ -5,6 +5,10 @@
 # variable tokudb allows to build with TokuDB storage engine
 %bcond_with tokudb
 
+# By default we don't build with mysqlhotcopy, since otherwise there is 
+# cyclic dependency on mysql, which conflicts with mariadb
+%bcond_with mysqlhotcopy
+
 Name: mariadb
 Version: 5.5.34
 Release: 3%{?dist}
@@ -119,7 +123,7 @@ Requires: real-%{name}-libs%{?_isa} = %{version}-%{release}
 Requires: sh-utils
 Requires(pre): /usr/sbin/useradd
 # mysqlhotcopy needs DBI/DBD support
-Requires: perl-DBI, perl-DBD-MySQL
+%{?with_mysqlhotcopy:Requires: perl-DBI, perl-DBD-MySQL}
 Conflicts: MySQL-server
 Provides: mysql-server = %{version}-%{release}
 Provides: mysql-server%{?_isa} = %{version}-%{release}
@@ -468,6 +472,10 @@ rm -f ${RPM_BUILD_ROOT}%{_mandir}/man1/mysql-stress-test.pl.1*
 rm -f ${RPM_BUILD_ROOT}%{_mandir}/man1/mysql-test-run.pl.1*
 rm -f ${RPM_BUILD_ROOT}%{_bindir}/mytop
 
+# remove cyclic dependency by not including mysqlhotcopy
+%{!?with_mysqlhotcopy:rm -f ${RPM_BUILD_ROOT}%{_bindir}/mysqlhotcopy}
+%{!?with_mysqlhotcopy:rm -f ${RPM_BUILD_ROOT}%{_mandir}/man1/mysqlhotcopy.1*}
+
 # put logrotate script where it needs to be
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d
 mv ${RPM_BUILD_ROOT}%{_datadir}/mysql/mysql-log-rotate $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/mysqld
@@ -635,7 +643,7 @@ fi
 %{_bindir}/mysqldumpslow
 %{_bindir}/mysqld_multi
 %{_bindir}/mysqld_safe
-%{_bindir}/mysqlhotcopy
+%{?with_mysqlhotcopy:%{_bindir}/mysqlhotcopy}
 %{_bindir}/mysqltest
 %{_bindir}/innochecksum
 %{_bindir}/perror
@@ -674,7 +682,7 @@ fi
 %{_mandir}/man1/mysqlcheck.1*
 %{_mandir}/man1/mysqld_multi.1*
 %{_mandir}/man1/mysqld_safe.1*
-%{_mandir}/man1/mysqlhotcopy.1*
+%{?with_mysqlhotcopy:%{_mandir}/man1/mysqlhotcopy.1*}
 %{_mandir}/man1/mysqlimport.1*
 %{_mandir}/man1/mysqlman.1*
 %{_mandir}/man1/mysql_setpermission.1*
@@ -739,6 +747,7 @@ fi
 %changelog
 * Tue Nov 26 2013 Honza Horak <hhorak@redhat.com> 1:5.5.34-3
 - Remove alternatives, use old good scriptstub
+- Remove cyclic dependency
 
 * Mon Nov 25 2013 Honza Horak <hhorak@redhat.com> 1:5.5.34-2
 - Use proper priority for alternatives

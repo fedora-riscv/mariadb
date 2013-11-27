@@ -4,7 +4,7 @@
 
 Name: mariadb
 Version: 5.5.34
-Release: 1%{?dist}
+Release: 2%{?dist}
 
 Summary: A community developed branch of MySQL
 Group: Applications/Databases
@@ -774,6 +774,9 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Wed Nov 27 2013 Honza Horak <hhorak@redhat.com> 1:5.5.34-2
+- Fix mariadb-wait-ready script
+
 * Fri Nov 22 2013 Honza Horak <hhorak@redhat.com> 1:5.5.34-1
 - Rebase to 5.5.34
 

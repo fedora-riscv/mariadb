@@ -7,7 +7,7 @@
 
 Name: mariadb
 Version: 5.5.35
-Release: 1%{?dist}
+Release: 2%{?dist}
 Epoch: 1
 
 Summary: A community developed branch of MySQL
@@ -557,8 +557,7 @@ fi
 
 %post server
 %systemd_post mysqld.service
-/bin/chmod 0755 /var/lib/mysql
-/bin/touch /var/log/mysqld.log
+/bin/chmod 0755 %{_localstatedir}/lib/mysql
 
 %{_sbindir}/update-alternatives --install %{_bindir}/mysqlbug \
 	mysqlbug %{_libdir}/mysql/mysqlbug %{__isa_bits}
@@ -784,6 +783,10 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Wed Feb  5 2014 Honza Horak <hhorak@redhat.com> 1:5.5.35-2
+- Do not touch the log file in post script, so it does not get wrong owner
+  Resolves: #1061045
+
 * Thu Jan 30 2014 Honza Horak <hhorak@redhat.com> 1:5.5.35-1
 - Rebase to 5.5.35
   https://kb.askmonty.org/en/mariadb-5535-changelog/

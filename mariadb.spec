@@ -54,7 +54,6 @@ Source999: filter-requires-mysql.sh
 Patch1: mariadb-errno.patch
 Patch2: mariadb-strmov.patch
 Patch3: mariadb-install-test.patch
-Patch4: mariadb-expired-certs.patch
 Patch5: mariadb-versioning.patch
 Patch6: mariadb-dubious-exports.patch
 Patch7: mariadb-s390-tsc.patch
@@ -257,7 +256,6 @@ MariaDB is a community developed branch of MySQL.
 %patch1 -p1
 %patch2 -p1
 %patch3 -p1
-%patch4 -p1
 %patch5 -p1
 %patch6 -p1
 %patch7 -p1

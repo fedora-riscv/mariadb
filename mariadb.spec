@@ -6,7 +6,7 @@
 %bcond_with tokudb
 
 Name: mariadb
-Version: 5.5.36
+Version: 5.5.37
 Release: 1%{?dist}
 Epoch: 1
 
@@ -781,6 +781,12 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Thu Apr 17 2014 Honza Horak <hhorak@redhat.com> - 1:5.5.37-1
+- Update to MariaDB 5.5.37, for various fixes described at
+  https://kb.askmonty.org/en/mariadb-5537-changelog/
+  Includes fixes for: CVE-2014-2440 CVE-2014-0384 CVE-2014-2432
+  CVE-2014-2431 CVE-2014-2430 CVE-2014-2436 CVE-2014-2438 CVE-2014-2419
+
 * Thu Mar 06 2014 Honza Horak <hhorak@redhat.com> - 1:5.5.36-1
 - Rebase to 5.5.36
   https://kb.askmonty.org/en/mariadb-5536-changelog/

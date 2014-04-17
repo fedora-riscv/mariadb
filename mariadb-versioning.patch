@@ -1,21 +1,6 @@
-The symbol versioning solution for libmysqlclient in mysql 5.1 was pretty
-awful (export everything) and as of 5.5.8 the cmake build scripts have
-forgotten the issue entirely.  So we have maintained our own list of exported
-symbols and jam it into the build with this hack.
-
-Since Fedora 21 we'll use new layout comming from Fedora/MariaDB/Oracle
-collaboration and which resulted into exporting all symbols under
-libmysqlclient_18 version, while some of them also have alternative
-name versioned as libmysqlclient_16.
-
-Upstream bug: https://mariadb.atlassian.net/browse/MDEV-5529
-
-However, to stay binary compatible in F20 and lower, we need to use the
-former way.
-
-diff -up mariadb-5.5.36/libmysql/CMakeLists.txt.versioning mariadb-5.5.36/libmysql/CMakeLists.txt
---- mariadb-5.5.36/libmysql/CMakeLists.txt.versioning	2014-03-06 21:55:33.338842373 +0100
-+++ mariadb-5.5.36/libmysql/CMakeLists.txt	2014-03-06 21:55:36.778834151 +0100
+diff -up mariadb-5.5.37/libmysql/CMakeLists.txt.p5bak mariadb-5.5.37/libmysql/CMakeLists.txt
+--- mariadb-5.5.37/libmysql/CMakeLists.txt.p5bak	2014-04-17 17:41:10.502124767 +0200
++++ mariadb-5.5.37/libmysql/CMakeLists.txt	2014-04-17 17:41:43.048127870 +0200
 @@ -1,5 +1,4 @@
 -# Copyright (c) 2006, 2013, Oracle and/or its affiliates.
 -# Copyright (c) 2009, 2013, SkySQL Ab.
@@ -54,7 +39,7 @@ diff -up mariadb-5.5.36/libmysql/CMakeLists.txt.versioning mariadb-5.5.36/libmys
  mysql_fetch_row_cont
  mysql_fetch_row_start
  mysql_free_result_cont
-@@ -245,76 +238,73 @@ IF(CMAKE_SYSTEM_NAME MATCHES "Linux")
+@@ -245,114 +238,73 @@ IF(CMAKE_SYSTEM_NAME MATCHES "Linux")
    # for compatibility with distribution packages, so client shared library can 
    # painlessly replace the one supplied by the distribution.
    
@@ -101,7 +86,45 @@ diff -up mariadb-5.5.36/libmysql/CMakeLists.txt.versioning mariadb-5.5.36/libmys
 -
 -    # DBD::mysql requires this
 -    is_prefix
--  )  
+-  )
+-
+- 
+-  # And even more so on Debian
+-  SET(CLIENT_API_5_5_EXTRA
+-    # libmyodbc. Argh!
+-    alloc_dynamic
+-    alloc_root
+-    delete_dynamic
+-    dynstr_append
+-    dynstr_append_mem
+-    dynstr_append_os_quoted
+-    dynstr_free
+-    dynstr_realloc
+-    free_root
+-    get_dynamic
+-    init_dynamic_array2
+-    init_dynamic_string
+-    int2str
+-    list_add
+-    list_delete
+-    my_end
+-    my_free
+-    my_malloc
+-    my_memdup
+-    my_realloc
+-    my_strdup
+-    set_dynamic
+-    strdup_root
+-    strend
+-    strfill
+-    strmake
+-    strmake_root
+-    strxmov
+-
+-    # pam_mysql.so
+-    make_scrambled_password
+-    make_scrambled_password_323
+-  )
 -
 -  # Linker script to version symbols in Fedora- and Debian- compatible way, MDEV-5529
 -  SET(VERSION_SCRIPT_TEMPLATE ${CMAKE_CURRENT_SOURCE_DIR}/libmysql_versions.ld.in)
@@ -119,7 +142,7 @@ diff -up mariadb-5.5.36/libmysql/CMakeLists.txt.versioning mariadb-5.5.36/libmys
 -  ENDFOREACH()
 -      
 -  SET (CLIENT_API_5_5_LIST)
--  FOREACH (f ${CLIENT_API_FUNCTIONS_5_5})
+-  FOREACH (f ${CLIENT_API_FUNCTIONS_5_5} ${CLIENT_API_5_5_EXTRA})
 -    SET(CLIENT_API_5_5_LIST "${CLIENT_API_5_5_LIST}\t${f};\n")
 -  ENDFOREACH()
 -
@@ -196,7 +219,7 @@ diff -up mariadb-5.5.36/libmysql/CMakeLists.txt.versioning mariadb-5.5.36/libmys
  ENDIF()
  
  
-@@ -342,10 +332,8 @@ SET(LIBS clientlib dbug strings vio mysy
+@@ -380,10 +332,8 @@ SET(LIBS clientlib dbug strings vio mysy
  MERGE_LIBRARIES(mysqlclient STATIC ${LIBS} COMPONENT Development)
  
  # Visual Studio users need debug  static library for debug projects
@@ -207,16 +230,18 @@ diff -up mariadb-5.5.36/libmysql/CMakeLists.txt.versioning mariadb-5.5.36/libmys
  ENDIF()
  
  IF(UNIX)
-@@ -364,7 +352,7 @@ IF(UNIX)
+@@ -402,9 +352,7 @@ IF(UNIX)
  ENDIF()
  
  IF(NOT DISABLE_SHARED)
--  MERGE_LIBRARIES(libmysql SHARED ${LIBS} EXPORTS ${CLIENT_API_FUNCTIONS} ${CLIENT_API_5_1_EXTRA} COMPONENT SharedLibraries)
+-  MERGE_LIBRARIES(libmysql SHARED ${LIBS}
+-    EXPORTS ${CLIENT_API_FUNCTIONS} ${CLIENT_API_5_1_EXTRA} ${CLIENT_API_5_5_EXTRA}
+-    COMPONENT SharedLibraries)
 +  MERGE_LIBRARIES(libmysql SHARED ${LIBS} EXPORTS ${CLIENT_API_FUNCTIONS} ${CLIENT_API_EXTRA} COMPONENT SharedLibraries)
    IF(UNIX)
      # libtool compatability
      IF(CMAKE_SYSTEM_NAME MATCHES "FreeBSD" OR APPLE)
-@@ -381,8 +369,11 @@ IF(NOT DISABLE_SHARED)
+@@ -421,8 +369,11 @@ IF(NOT DISABLE_SHARED)
        SOVERSION "${SHARED_LIB_MAJOR_VERSION}")
      IF(LINK_FLAG_NO_UNDEFINED OR VERSION_SCRIPT_LINK_FLAGS)
        GET_TARGET_PROPERTY(libmysql_link_flags libmysql LINK_FLAGS)

@@ -1,3 +1,18 @@
+The symbol versioning solution for libmysqlclient in mysql 5.1 was pretty
+awful (export everything) and as of 5.5.8 the cmake build scripts have
+forgotten the issue entirely.  So we have maintained our own list of exported
+symbols and jam it into the build with this hack.
+
+Since Fedora 21 we'll use new layout comming from Fedora/MariaDB/Oracle
+collaboration and which resulted into exporting all symbols under
+libmysqlclient_18 version, while some of them also have alternative
+name versioned as libmysqlclient_16.
+
+Upstream bug: https://mariadb.atlassian.net/browse/MDEV-5529
+
+However, to stay binary compatible in F20 and lower, we need to use the
+former way.
+
 diff -up mariadb-5.5.37/libmysql/CMakeLists.txt.p5bak mariadb-5.5.37/libmysql/CMakeLists.txt
 --- mariadb-5.5.37/libmysql/CMakeLists.txt.p5bak	2014-04-17 17:41:10.502124767 +0200
 +++ mariadb-5.5.37/libmysql/CMakeLists.txt	2014-04-17 17:41:43.048127870 +0200

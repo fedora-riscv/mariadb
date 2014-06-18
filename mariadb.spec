@@ -6,7 +6,7 @@
 %bcond_with tokudb
 
 Name: mariadb
-Version: 5.5.37
+Version: 5.5.38
 Release: 1%{?dist}
 Epoch: 1
 
@@ -465,9 +465,6 @@ install -p -m 755 %{SOURCE13} ${RPM_BUILD_ROOT}%{_libexecdir}/
 mkdir -p $RPM_BUILD_ROOT%{_tmpfilesdir}
 install -p -m 0644 %{SOURCE10} $RPM_BUILD_ROOT%{_tmpfilesdir}/%{name}.conf
 
-# Fix funny permissions that cmake build scripts apply to config files
-chmod 644 ${RPM_BUILD_ROOT}%{_datadir}/mysql/config.*.ini
-
 # Fix scripts for multilib safety
 mv ${RPM_BUILD_ROOT}%{_bindir}/mysql_config ${RPM_BUILD_ROOT}%{_libdir}/mysql/mysql_config
 touch ${RPM_BUILD_ROOT}%{_bindir}/mysql_config
@@ -495,7 +492,6 @@ rm -f ${RPM_BUILD_ROOT}%{_bindir}/mysql_embedded
 rm -f ${RPM_BUILD_ROOT}%{_libdir}/mysql/*.a
 rm -f ${RPM_BUILD_ROOT}%{_datadir}/mysql/binary-configure
 rm -f ${RPM_BUILD_ROOT}%{_datadir}/mysql/magic
-rm -f ${RPM_BUILD_ROOT}%{_datadir}/mysql/ndb-config-2-node.ini
 rm -f ${RPM_BUILD_ROOT}%{_datadir}/mysql/mysql.server
 rm -f ${RPM_BUILD_ROOT}%{_datadir}/mysql/mysqld_multi.server
 rm -f ${RPM_BUILD_ROOT}%{_mandir}/man1/mysql-stress-test.pl.1*
@@ -630,8 +626,6 @@ fi
 %{_mandir}/man1/mysqlshow.1*
 %{_mandir}/man1/mysqlslap.1*
 %{_mandir}/man1/my_print_defaults.1*
-%{_mandir}/man1/mysql_fix_privilege_tables.1*
-%{_mandir}/man8/mysqlmanager.8*
 
 %{_libdir}/mysql/mysql_config
 %config(noreplace) %{_sysconfdir}/my.cnf.d/client.cnf
@@ -735,7 +729,6 @@ fi
 %{_mandir}/man1/mysqld_safe.1*
 %{_mandir}/man1/mysqlhotcopy.1*
 %{_mandir}/man1/mysqlimport.1*
-%{_mandir}/man1/mysqlman.1*
 %{_mandir}/man1/mysql_setpermission.1*
 %{_mandir}/man1/mysqltest.1*
 %{_mandir}/man1/innochecksum.1*
@@ -753,7 +746,6 @@ fi
 %{_datadir}/mysql/mysql_test_data_timezone.sql
 %{_datadir}/mysql/mysql_performance_tables.sql
 %{_datadir}/mysql/my-*.cnf
-%{_datadir}/mysql/config.*.ini
 
 %{_unitdir}/mysqld.service
 %{_unitdir}/mariadb.service
@@ -798,6 +790,10 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Wed Jun 18 2014 Honza Horak <hhorak@redhat.com> - 1:5.5.38-1
+- Rebase to 5.5.38
+  https://kb.askmonty.org/en/mariadb-5538-changelog/
+
 * Thu Apr 17 2014 Honza Horak <hhorak@redhat.com> - 1:5.5.37-1
 - Update to MariaDB 5.5.37, for various fixes described at
   https://kb.askmonty.org/en/mariadb-5537-changelog/

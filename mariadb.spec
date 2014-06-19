@@ -780,6 +780,7 @@ fi
 * Thu Jun 19 2014 Honza Horak <hhorak@redhat.com> - 1:5.5.38-2
 - Enable TokuDB engine for x86_64
 - Re-enable tokudb_innodb_xa_crash again, seems to be fixed now
+  Resolves: #1074488
 
 * Wed Jun 18 2014 Honza Horak <hhorak@redhat.com> - 1:5.5.38-1
 - Rebase to 5.5.38

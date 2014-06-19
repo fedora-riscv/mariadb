@@ -3,11 +3,15 @@
 
 # TokuDB engine is now part of MariaDB, but it is available only for x86_64;
 # variable tokudb allows to build with TokuDB storage engine
+%ifarch x86_64
+%bcond_without tokudb
+%else
 %bcond_with tokudb
+%endif
 
 Name: mariadb
 Version: 5.5.38
-Release: 1%{?dist}
+Release: 2%{?dist}
 Epoch: 1
 
 Summary: A community developed branch of MySQL
@@ -392,7 +396,7 @@ done
 	--skip-test-list=rh-skipped-tests.list \
 	--suite-timeout=720 --testcase-timeout=30 \
 	--mysqld=--binlog-format=mixed --force-restart \
-	--shutdown-timeout=60 
+	--shutdown-timeout=60
     # cmake build scripts will install the var cruft if left alone :-(
     rm -rf var
   ) 
@@ -773,6 +777,10 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Thu Jun 19 2014 Honza Horak <hhorak@redhat.com> - 1:5.5.38-2
+- Enable TokuDB engine for x86_64
+- Re-enable tokudb_innodb_xa_crash again, seems to be fixed now
+
 * Wed Jun 18 2014 Honza Horak <hhorak@redhat.com> - 1:5.5.38-1
 - Rebase to 5.5.38
   https://kb.askmonty.org/en/mariadb-5538-changelog/

@@ -11,7 +11,7 @@
 
 Name: mariadb
 Version: 5.5.38
-Release: 2%{?dist}
+Release: 3%{?dist}
 Epoch: 1
 
 Summary: A community developed branch of MySQL
@@ -794,6 +794,10 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Fri Jun 27 2014 Honza Horak <hhorak@redhat.com> - 1:5.5.38-3
+- Add compatible libmysqlclient_18 version for symbols
+  Resolves: #1111776
+
 * Thu Jun 19 2014 Honza Horak <hhorak@redhat.com> - 1:5.5.38-2
 - Enable TokuDB engine for x86_64
 - Re-enable tokudb_innodb_xa_crash again, seems to be fixed now

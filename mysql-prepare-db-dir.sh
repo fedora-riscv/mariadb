@@ -3,28 +3,36 @@
 # This script creates the mysql data directory during first service start.
 # In subsequent starts, it does nothing much.
 
-source "`dirname ${BASH_SOURCE[0]}`/mariadb-scripts-common"
+source "`dirname ${BASH_SOURCE[0]}`/mysql-scripts-common"
 
-# Absorb configuration settings from the specified systemd service file,
-# or the default "mariadb" service if not specified
-SERVICE_NAME="$1"
-if [ x"$SERVICE_NAME" = x ]
+# If two args given first is user, second is group
+# otherwise the arg is the systemd service file
+if [ "$#" -eq 2 ]
 then
-    SERVICE_NAME=@RPM_PACKAGE_PREFIX@mariadb.service
-fi
+    myuser="$1"
+    mygroup="$2"
+else
+    # Absorb configuration settings from the specified systemd service file,
+    # or the default service if not specified
+    SERVICE_NAME="$1"
+    if [ x"$SERVICE_NAME" = x ]
+    then
+        SERVICE_NAME=@DAEMON_NAME@.service
+    fi
 
-myuser=`systemctl show -p User "${SERVICE_NAME}" |
-  sed 's/^User=//'`
-if [ x"$myuser" = x ]
-then
-    myuser=mysql
-fi
+    myuser=`systemctl show -p User "${SERVICE_NAME}" |
+      sed 's/^User=//'`
+    if [ x"$myuser" = x ]
+    then
+        myuser=mysql
+    fi
 
-mygroup=`systemctl show -p Group "${SERVICE_NAME}" |
-  sed 's/^Group=//'`
-if [ x"$mygroup" = x ]
-then
-    mygroup=mysql
+    mygroup=`systemctl show -p Group "${SERVICE_NAME}" |
+      sed 's/^Group=//'`
+    if [ x"$mygroup" = x ]
+    then
+        mygroup=mysql
+    fi
 fi
 
 # Set up the errlogfile with appropriate permissions
@@ -60,11 +68,11 @@ if [ ! -d "$datadir/mysql" ] ; then
     [ -x /sbin/restorecon ] && /sbin/restorecon "$datadir"
 
     # Now create the database
-    echo "Initializing MySQL database"
-    @bindir@/mysql_install_db --datadir="$datadir" --user="$myuser"
+    echo "Initializing @NICE_PROJECT_NAME@ database"
+    @bindir@/mysql_install_db --rpm --datadir="$datadir" --user="$myuser"
     ret=$?
     if [ $ret -ne 0 ] ; then
-        echo "Initialization of MySQL database failed." >&2
+        echo "Initialization of @NICE_PROJECT_NAME@ database failed." >&2
         echo "Perhaps @sysconfdir@/my.cnf is misconfigured." >&2
         # Clean up any partially-created database files
         if [ ! -e "$datadir/mysql/user.frm" ] ; then

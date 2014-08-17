@@ -106,7 +106,7 @@
 
 Name:             %{pkgname}
 Version:          %{compatver}.%{bugfixver}
-Release:          7%{?dist}
+Release:          8%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -1107,6 +1107,9 @@ fi
 %endif
 
 %changelog
+* Sun Aug 17 2014 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1:10.0.12-8
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_21_22_Mass_Rebuild
+
 * Tue Aug  5 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.12-7
 - Adopt changes from mysql, thanks Bjorn Munch <bjorn.munch@oracle.com>
 

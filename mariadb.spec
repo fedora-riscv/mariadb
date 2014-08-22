@@ -10,8 +10,8 @@
 %endif
 
 Name: mariadb
-Version: 5.5.38
-Release: 3%{?dist}
+Version: 5.5.39
+Release: 1%{?dist}
 Epoch: 1
 
 Summary: A community developed branch of MySQL
@@ -777,6 +777,9 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Fri Aug 22 2014 Honza Horak <hhorak@redhat.com> - 1:5.5.39-1
+- Update to 5.5.39
+
 * Fri Jun 27 2014 Honza Horak <hhorak@redhat.com> - 1:5.5.38-3
 - Add compatible libmysqlclient_18 version for symbols
   Resolves: #1111776

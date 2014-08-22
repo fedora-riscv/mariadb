@@ -13,9 +13,9 @@ Upstream bug: https://mariadb.atlassian.net/browse/MDEV-5529
 However, to stay binary compatible in F20 and lower, we need to use the
 former way.
 
-diff -up mariadb-5.5.37/libmysql/CMakeLists.txt.p5bak mariadb-5.5.37/libmysql/CMakeLists.txt
---- mariadb-5.5.37/libmysql/CMakeLists.txt.p5bak	2014-04-17 17:41:10.502124767 +0200
-+++ mariadb-5.5.37/libmysql/CMakeLists.txt	2014-04-17 17:41:43.048127870 +0200
+diff -up mariadb-5.5.39/libmysql/CMakeLists.txt.p5 mariadb-5.5.39/libmysql/CMakeLists.txt
+--- mariadb-5.5.39/libmysql/CMakeLists.txt.p5	2014-08-16 00:47:21.000000000 +0200
++++ mariadb-5.5.39/libmysql/CMakeLists.txt	2014-08-22 16:56:48.745812519 +0200
 @@ -1,5 +1,4 @@
 -# Copyright (c) 2006, 2013, Oracle and/or its affiliates.
 -# Copyright (c) 2009, 2013, SkySQL Ab.
@@ -45,7 +45,7 @@ diff -up mariadb-5.5.37/libmysql/CMakeLists.txt.p5bak mariadb-5.5.37/libmysql/CM
  )
  
  SET(CLIENT_API_FUNCTIONS_5_5
-@@ -157,8 +152,6 @@ mysql_close_cont
+@@ -162,8 +157,6 @@ mysql_close_cont
  mysql_close_start
  mysql_commit_cont
  mysql_commit_start
@@ -54,7 +54,7 @@ diff -up mariadb-5.5.37/libmysql/CMakeLists.txt.p5bak mariadb-5.5.37/libmysql/CM
  mysql_fetch_row_cont
  mysql_fetch_row_start
  mysql_free_result_cont
-@@ -245,114 +238,73 @@ IF(CMAKE_SYSTEM_NAME MATCHES "Linux")
+@@ -250,114 +243,73 @@ IF(CMAKE_SYSTEM_NAME MATCHES "Linux")
    # for compatibility with distribution packages, so client shared library can 
    # painlessly replace the one supplied by the distribution.
    
@@ -234,18 +234,7 @@ diff -up mariadb-5.5.37/libmysql/CMakeLists.txt.p5bak mariadb-5.5.37/libmysql/CM
  ENDIF()
  
  
-@@ -380,10 +332,8 @@ SET(LIBS clientlib dbug strings vio mysy
- MERGE_LIBRARIES(mysqlclient STATIC ${LIBS} COMPONENT Development)
- 
- # Visual Studio users need debug  static library for debug projects
--INSTALL_DEBUG_SYMBOLS(clientlib)
- IF(MSVC)
-  INSTALL_DEBUG_TARGET(mysqlclient DESTINATION ${INSTALL_LIBDIR}/debug)
-- INSTALL_DEBUG_TARGET(clientlib DESTINATION ${INSTALL_LIBDIR}/debug)
- ENDIF()
- 
- IF(UNIX)
-@@ -402,9 +352,7 @@ IF(UNIX)
+@@ -406,9 +358,7 @@ IF(UNIX)
  ENDIF()
  
  IF(NOT DISABLE_SHARED)
@@ -256,7 +245,7 @@ diff -up mariadb-5.5.37/libmysql/CMakeLists.txt.p5bak mariadb-5.5.37/libmysql/CM
    IF(UNIX)
      # libtool compatability
      IF(CMAKE_SYSTEM_NAME MATCHES "FreeBSD" OR APPLE)
-@@ -421,8 +369,11 @@ IF(NOT DISABLE_SHARED)
+@@ -425,8 +375,11 @@ IF(NOT DISABLE_SHARED)
        SOVERSION "${SHARED_LIB_MAJOR_VERSION}")
      IF(LINK_FLAG_NO_UNDEFINED OR VERSION_SCRIPT_LINK_FLAGS)
        GET_TARGET_PROPERTY(libmysql_link_flags libmysql LINK_FLAGS)
@@ -265,7 +254,7 @@ diff -up mariadb-5.5.37/libmysql/CMakeLists.txt.p5bak mariadb-5.5.37/libmysql/CM
 +      ENDIF()
        SET_TARGET_PROPERTIES(libmysql PROPERTIES LINK_FLAGS 
 -        "${libmysql_link_flags} ${LINK_FLAG_NO_UNDEFINED} ${VERSION_SCRIPT_LINK_FLAGS}")
-+        "${libmysql_link_flags} -Wl,libmysql.version ${LINK_FLAG_NO_UNDEFINED}")
++        "${libmysql_link_flags} -Wl,--version-script=libmysql.version ${LINK_FLAG_NO_UNDEFINED}")
      ENDIF() 
      # clean direct output needs to be set several targets have the same name
      #(mysqlclient in this case)

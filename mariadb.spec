@@ -630,6 +630,11 @@ fi
 %{_mandir}/man1/mysqlshow.1*
 %{_mandir}/man1/mysqlslap.1*
 %{_mandir}/man1/my_print_defaults.1*
+%{_mandir}/man1/aria_chk.1*
+%{_mandir}/man1/aria_dump_log.1*
+%{_mandir}/man1/aria_ftdump.1*
+%{_mandir}/man1/aria_pack.1*
+%{_mandir}/man1/aria_read_log.1*
 
 %{_libdir}/mysql/mysql_config
 %config(noreplace) %{_sysconfdir}/my.cnf.d/client.cnf

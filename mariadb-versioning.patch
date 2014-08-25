@@ -254,7 +254,7 @@ diff -up mariadb-5.5.39/libmysql/CMakeLists.txt.p5 mariadb-5.5.39/libmysql/CMake
 +      ENDIF()
        SET_TARGET_PROPERTIES(libmysql PROPERTIES LINK_FLAGS 
 -        "${libmysql_link_flags} ${LINK_FLAG_NO_UNDEFINED} ${VERSION_SCRIPT_LINK_FLAGS}")
-+        "${libmysql_link_flags} -Wl,--version-script=libmysql.version ${LINK_FLAG_NO_UNDEFINED}")
++        "${libmysql_link_flags} -Wl,libmysql.version ${LINK_FLAG_NO_UNDEFINED}")
      ENDIF() 
      # clean direct output needs to be set several targets have the same name
      #(mysqlclient in this case)

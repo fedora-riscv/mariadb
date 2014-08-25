@@ -81,6 +81,7 @@ BuildRequires: pam-devel
 # perl modules needed to run regression tests
 BuildRequires: perl(Socket), perl(Time::HiRes)
 BuildRequires: perl(Data::Dumper), perl(Test::More), perl(Env)
+%{?with_tokudb:BuildRequires: jemalloc-devel}
 
 Requires: %{name}-libs%{?_isa} = %{epoch}:%{version}-%{release}
 Requires: grep, fileutils, bash

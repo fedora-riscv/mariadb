@@ -354,10 +354,10 @@ cmake . -DBUILD_CONFIG=mysql_release \
 	-DWITH_SSL=system \
 	-DWITH_ZLIB=system \
 %if %{with tokudb}
-	-DWITH_JEMALLOC=yes} \
+	-DWITH_JEMALLOC=yes \
 %else
-	-DWITH_JEMALLOC=no} \
-	-DWITHOUT_TOKUDB=ON}\
+	-DWITH_JEMALLOC=no \
+	-DWITHOUT_TOKUDB=ON \
 %endif
 	-DTMPDIR=%{_localstatedir}/tmp \
 	-DWITH_MYSQLD_LDFLAGS="-Wl,-z,relro,-z,now"

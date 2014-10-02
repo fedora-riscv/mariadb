@@ -1,5 +1,5 @@
 # Name of the package without any prefixes
-%global pkgname   mariadb
+%global pkgname      mariadb
 %global pkgnamepatch mariadb
 
 # Regression tests may take a long time (many cores recommended), skip them by 
@@ -17,21 +17,10 @@
 # Turn that off to ensure such files don't get included in RPMs (cf bz#884755).
 %global _default_patch_flags --no-backup-if-mismatch
 
-# When there is already another package that ships /etc/my.cnf,
-# rather include it than ship the file again, since conflicts between
-# those files may create issues
-# ship_my_cnf=1 means this is the only package in distro which ships
-# my.cnf and my.cnf.d
-%if 0%{?fedora} >= 21
-%global ship_my_cnf 1
-%else
-%global ship_my_cnf 0
-%endif
-
 # TokuDB engine is now part of MariaDB, but it is available only for x86_64;
 # variable tokudb allows to build with TokuDB storage engine
-# Temporarily disabled for https://mariadb.atlassian.net/browse/MDEV-6446
-%ifarch 0 #x86_64
+# Temporarily disabled in F21+ for https://mariadb.atlassian.net/browse/MDEV-6446
+%ifarch 0%{?fedora} < 21 #x86_64
 %bcond_without tokudb
 %else
 %bcond_with tokudb
@@ -51,9 +40,18 @@
 %bcond_without errmsg
 %bcond_without bench
 %bcond_without test
+%bcond_without connect
+
+# When there is already another package that ships /etc/my.cnf,
+# rather include it than ship the file again, since conflicts between
+# those files may create issues
+%bcond_without config
+
+# For deep debugging we need to build binaries with extra debug info
+%bcond_with debug
 
 # Include files for SysV init or systemd
-%if 0%{?fedora} >= 15
+%if 0%{?fedora} >= 15 || 0%{?rhel} >= 7
 %bcond_without init_systemd
 %bcond_with init_sysv
 %global daemon_name %{name}
@@ -90,6 +88,9 @@
 %global obsoleted_mysql_evr 5.6-0
 %global obsoleted_mysql_case_evr 5.5.30-5
 
+# Provide mysql names for compatibility
+%bcond_without mysql_names
+
 # When replacing mysql by mariadb these packages are not upated, but rather
 # installed and uninstalled. Thus we loose information about mysqld service
 # enablement. To address this we use a file to store that information within
@@ -102,11 +103,11 @@
 # Make long macros shorter
 %global sameevr   %{epoch}:%{version}-%{release}
 %global compatver 10.0
-%global bugfixver 12
+%global bugfixver 14
 
 Name:             %{pkgname}
 Version:          %{compatver}.%{bugfixver}
-Release:          8%{?dist}
+Release:          4%{?with_debug:.debug}%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -130,9 +131,10 @@ Source12:         mysql-prepare-db-dir.sh
 Source13:         mysql-wait-ready.sh
 Source14:         mysql-check-socket.sh
 Source15:         mysql-scripts-common.sh
-Source16:         mysql-compat.service.in
-Source17:         mysql-compat.conf.in
-Source18:         mysql.init.in
+Source16:         mysql-check-upgrade.sh
+Source17:         mysql-compat.service.in
+Source18:         mysql-compat.conf.in
+Source19:         mysql.init.in
 Source50:         rh-skipped-tests-base.list
 Source51:         rh-skipped-tests-intel.list
 Source52:         rh-skipped-tests-arm.list
@@ -149,7 +151,7 @@ Patch5:           %{pkgnamepatch}-cipherspec.patch
 Patch6:           %{pkgnamepatch}-file-contents.patch
 Patch7:           %{pkgnamepatch}-dh1024.patch
 Patch8:           %{pkgnamepatch}-scripts.patch
-Patch9:           %{pkgnamepatch}-paths.patch
+Patch9:           %{pkgnamepatch}-install-db-sharedir.patch
 
 # Patches specific for this mysql package
 Patch30:          %{pkgnamepatch}-errno.patch
@@ -159,14 +161,13 @@ Patch33:          %{pkgnamepatch}-covscan-signexpr.patch
 Patch34:          %{pkgnamepatch}-covscan-stroverflow.patch
 Patch35:          %{pkgnamepatch}-config.patch
 Patch36:          %{pkgnamepatch}-ssltest.patch
-Patch37:          %{pkgnamepatch}-mysql_config.patch
 
 BuildRequires:    cmake
 BuildRequires:    libaio-devel
 BuildRequires:    openssl-devel
 BuildRequires:    ncurses-devel
 BuildRequires:    perl
-BuildRequires:    readline-devel
+BuildRequires:    libedit-devel
 BuildRequires:    systemtap-sdt-devel
 BuildRequires:    zlib-devel
 # auth_pam.so plugin will be build if pam-devel is installed
@@ -193,10 +194,12 @@ Requires:         fileutils
 Requires:         grep
 Requires:         %{name}-common%{?_isa} = %{sameevr}
 
+%if %{with mysql_names}
 Provides:         mysql = %{sameevr}
 Provides:         mysql%{?_isa} = %{sameevr}
 Provides:         mysql-compat-client = %{sameevr}
 Provides:         mysql-compat-client%{?_isa} = %{sameevr}
+%endif
 
 # MySQL (with caps) is upstream's spelling of their own RPMs for mysql
 %{?obsoleted_mysql_case_evr:Obsoletes: MySQL < %{obsoleted_mysql_case_evr}}
@@ -226,8 +229,10 @@ contains the standard MariaDB/MySQL client programs and generic MySQL files.
 Summary:          The shared libraries required for MariaDB/MySQL clients
 Group:            Applications/Databases
 Requires:         %{name}-common%{?_isa} = %{sameevr}
+%if %{with mysql_names}
 Provides:         mysql-libs = %{sameevr}
 Provides:         mysql-libs%{?_isa} = %{sameevr}
+%endif
 %{?obsoleted_mysql_case_evr:Obsoletes: MySQL-libs < %{obsoleted_mysql_case_evr}}
 %{?obsoleted_mysql_evr:Obsoletes: mysql-libs < %{obsoleted_mysql_evr}}
 
@@ -239,13 +244,24 @@ to a MariaDB/MySQL server. MariaDB is a community developed branch of MySQL.
 %endif
 
 
+%if %{with config}
+%package          config
+Summary:          The config files required by server and client
+Group:            Applications/Databases
+
+%description      config
+The package provides the config file my.cnf and my.cnf.d directory used by any
+MariaDB or MySQL program. You will need to install this package to use any
+other MariaDB or MySQL package if the config files are not provided in the
+package itself.
+%endif
+
+
 %if %{with common}
 %package          common
 Summary:          The shared files required by server and client
 Group:            Applications/Databases
-%if ! %{ship_my_cnf}
 Requires:         %{_sysconfdir}/my.cnf
-%endif
 
 %description      common
 The package provides the essential shared files for any MariaDB program.
@@ -270,13 +286,12 @@ MariaDB packages.
 Summary:          The MariaDB server and related files
 Group:            Applications/Databases
 
-# note: no version here = %{version}-%{release}
+# note: no version here = %%{version}-%%{release}
 Requires:         mysql-compat-client%{?_isa}
+Requires:         mysql%{?_isa}
 Requires:         %{name}-common%{?_isa} = %{sameevr}
-%if %{without common}
 Requires:         %{_sysconfdir}/my.cnf
 Requires:         %{_sysconfdir}/my.cnf.d
-%endif
 Requires:         %{name}-errmsg%{?_isa} = %{sameevr}
 Requires:         sh-utils
 Requires(pre):    /usr/sbin/useradd
@@ -291,10 +306,12 @@ Requires(posttrans): systemd
 # mysqlhotcopy needs DBI/DBD support
 Requires:         perl(DBI)
 Requires:         perl(DBD::mysql)
+%if %{with mysql_names}
 Provides:         mysql-server = %{sameevr}
 Provides:         mysql-server%{?_isa} = %{sameevr}
 Provides:         mysql-compat-server = %{sameevr}
 Provides:         mysql-compat-server%{?_isa} = %{sameevr}
+%endif
 %{?obsoleted_mysql_case_evr:Obsoletes: MySQL-server < %{obsoleted_mysql_case_evr}}
 Conflicts:        community-mysql-server
 Conflicts:        mariadb-galera-server
@@ -309,7 +326,7 @@ MariaDB is a community developed branch of MySQL.
 
 
 %if %{with oqgraph}
-%package          oqgraph
+%package          oqgraph-engine
 Summary:          The Open Query GRAPH engine for MariaDB
 Group:            Applications/Databases
 Requires:         %{name}-server%{?_isa} = %{sameevr}
@@ -317,12 +334,27 @@ Requires:         %{name}-server%{?_isa} = %{sameevr}
 BuildRequires:    boost-devel
 BuildRequires:    Judy-devel
 
-%description      oqgraph
+%description      oqgraph-engine
 The package provides Open Query GRAPH engine (OQGRAPH) as plugin for MariaDB
 database server. OQGRAPH is a computation engine allowing hierarchies and more
 complex graph structures to be handled in a relational fashion. In a nutshell,
 tree structures and friend-of-a-friend style searches can now be done using
 standard SQL syntax, and results joined onto other tables.
+%endif
+
+
+%if %{with connect}
+%package          connect-engine
+Summary:          The CONNECT storage engine for MariaDB
+Group:            Applications/Databases
+Requires:         %{name}-server%{?_isa} = %{sameevr}
+
+%description      connect-engine
+The CONNECT storage engine enables MariaDB to access external local or
+remote data (MED). This is done by defining tables based on different data
+types, in particular files in various formats, data extracted from other DBMS
+or products (such as Excel), or data retrieved from the environment
+(for example DIR, WMI, and MAC tables).
 %endif
 
 
@@ -332,8 +364,10 @@ Summary:          Files for development of MariaDB/MySQL applications
 Group:            Applications/Databases
 Requires:         %{name}-libs%{?_isa} = %{sameevr}
 Requires:         openssl-devel%{?_isa}
+%if %{with mysql_names}
 Provides:         mysql-devel = %{sameevr}
 Provides:         mysql-devel%{?_isa} = %{sameevr}
+%endif
 %{?obsoleted_mysql_case_evr:Obsoletes: MySQL-devel < %{obsoleted_mysql_case_evr}}
 %{?obsoleted_mysql_evr:Obsoletes: mysql-devel < %{obsoleted_mysql_evr}}
 Conflicts:        community-mysql-devel
@@ -352,8 +386,10 @@ Summary:          MariaDB as an embeddable library
 Group:            Applications/Databases
 Requires:         %{name}-common%{?_isa} = %{sameevr}
 Requires:         %{name}-errmsg%{?_isa} = %{sameevr}
+%if %{with mysql_names}
 Provides:         mysql-embedded = %{sameevr}
 Provides:         mysql-embedded%{?_isa} = %{sameevr}
+%endif
 %{?obsoleted_mysql_case_evr:Obsoletes: MySQL-embedded < %{obsoleted_mysql_case_evr}}
 %{?obsoleted_mysql_evr:Obsoletes: mysql-embedded < %{obsoleted_mysql_evr}}
 
@@ -369,8 +405,10 @@ Summary:          Development files for MariaDB as an embeddable library
 Group:            Applications/Databases
 Requires:         %{name}-embedded%{?_isa} = %{sameevr}
 Requires:         %{name}-devel%{?_isa} = %{sameevr}
+%if %{with mysql_names}
 Provides:         mysql-embedded-devel = %{sameevr}
 Provides:         mysql-embedded-devel%{?_isa} = %{sameevr}
+%endif
 Conflicts:        community-mysql-embedded-devel
 %{?obsoleted_mysql_case_evr:Obsoletes: MySQL-embedded-devel < %{obsoleted_mysql_case_evr}}
 %{?obsoleted_mysql_evr:Obsoletes: mysql-embedded-devel < %{obsoleted_mysql_evr}}
@@ -388,8 +426,10 @@ MariaDB is a community developed branch of MySQL.
 Summary:          MariaDB benchmark scripts and data
 Group:            Applications/Databases
 Requires:         %{name}%{?_isa} = %{sameevr}
+%if %{with mysql_names}
 Provides:         mysql-bench = %{sameevr}
 Provides:         mysql-bench%{?_isa} = %{sameevr}
+%endif
 Conflicts:        community-mysql-bench
 %{?obsoleted_mysql_case_evr:Obsoletes: MySQL-bench < %{obsoleted_mysql_case_evr}}
 %{?obsoleted_mysql_evr:Obsoletes: mysql-bench < %{obsoleted_mysql_evr}}
@@ -421,8 +461,10 @@ Requires:         perl(Sys::Hostname)
 Requires:         perl(Test::More)
 Requires:         perl(Time::HiRes)
 Conflicts:        community-mysql-test
+%if %{with mysql_names}
 Provides:         mysql-test = %{sameevr}
 Provides:         mysql-test%{?_isa} = %{sameevr}
+%endif
 %{?obsoleted_mysql_case_evr:Obsoletes: MySQL-test < %{obsoleted_mysql_case_evr}}
 %{?obsoleted_mysql_evr:Obsoletes: mysql-test < %{obsoleted_mysql_evr}}
 
@@ -452,7 +494,6 @@ MariaDB is a community developed branch of MySQL.
 %patch34 -p1
 %patch35 -p1
 %patch36 -p1
-%patch37 -p1
 
 sed -i -e 's/2.8.7/2.6.4/g' cmake/cpack_rpm.cmake
 
@@ -480,7 +521,8 @@ cat %{SOURCE54} >> mysql-test/rh-skipped-tests.list
 %endif
 
 cp %{SOURCE2} %{SOURCE3} %{SOURCE10} %{SOURCE11} %{SOURCE12} %{SOURCE13} \
-   %{SOURCE14} %{SOURCE15} %{SOURCE16} %{SOURCE17} %{SOURCE18} scripts
+   %{SOURCE14} %{SOURCE15} %{SOURCE16} %{SOURCE17} %{SOURCE18} %{SOURCE19} \
+   scripts
 
 %build
 
@@ -520,7 +562,8 @@ export LDFLAGS
 
 # The INSTALL_xxx macros have to be specified relative to CMAKE_INSTALL_PREFIX
 # so we can't use %%{_datadir} and so forth here.
-cmake .  -DBUILD_CONFIG=mysql_release \
+%cmake . \
+         -DBUILD_CONFIG=mysql_release \
          -DFEATURE_SET="community" \
          -DINSTALL_LAYOUT=RPM \
          -DDAEMON_NAME="%{daemon_name}" \
@@ -559,13 +602,13 @@ cmake .  -DBUILD_CONFIG=mysql_release \
          -DENABLED_LOCAL_INFILE=ON \
          -DENABLE_DTRACE=ON \
          -DWITH_EMBEDDED_SERVER=ON \
-         -DWITH_READLINE=ON \
          -DWITH_SSL=system \
          -DWITH_ZLIB=system \
 %{?with_pcre: -DWITH_PCRE=system}\
          -DWITH_JEMALLOC=no \
-%{!?with_tokudb:	-DWITHOUT_TOKUDB=ON}\
+%{!?with_tokudb: -DWITHOUT_TOKUDB=ON}\
          -DTMPDIR=/var/tmp \
+%{?with_debug: -DCMAKE_BUILD_TYPE=Debug}\
          %{?_hardened_build:-DWITH_MYSQLD_LDFLAGS="-pie -Wl,-z,relro,-z,now"}
 
 make %{?_smp_mflags} VERBOSE=1
@@ -587,7 +630,7 @@ make DESTDIR=%{buildroot} install
 # so resort to this blunt instrument.  While at it, let's not reference
 # libmysqlclient_r anymore either.
 sed -e 's/-lprobes_mysql//' -e 's/-lmysqlclient_r/-lmysqlclient/' \
-	%{buildroot}%{_bindir}/mysql_config >mysql_config.tmp
+  %{buildroot}%{_bindir}/mysql_config >mysql_config.tmp
 cp -p -f mysql_config.tmp %{buildroot}%{_bindir}/mysql_config
 chmod 755 %{buildroot}%{_bindir}/mysql_config
 
@@ -596,6 +639,9 @@ chmod 755 %{buildroot}%{_bindir}/mysql_config
 unamei=$(uname -i)
 %ifarch %{arm}
 unamei=arm
+%endif
+%ifarch %{power64}
+unamei=ppc64
 %endif
 %ifarch %{arm} aarch64 %{ix86} x86_64 ppc %{power64} %{sparc} s390 s390x
 mv %{buildroot}%{_includedir}/mysql/my_config.h %{buildroot}%{_includedir}/mysql/my_config_${unamei}.h
@@ -608,8 +654,8 @@ install -p -m 0755 scripts/mysql_config_multilib %{buildroot}%{_bindir}/mysql_co
 
 # install INFO_SRC, INFO_BIN into libdir (upstream thinks these are doc files,
 # but that's pretty wacko --- see also %%{name}-file-contents.patch)
-mv %{buildroot}%{_pkgdocdir}/MariaDB-server-%{version}/INFO_SRC %{buildroot}%{_libdir}/mysql/
-mv %{buildroot}%{_pkgdocdir}/MariaDB-server-%{version}/INFO_BIN %{buildroot}%{_libdir}/mysql/
+install -p -m 644 Docs/INFO_SRC %{buildroot}%{_libdir}/mysql/
+install -p -m 644 Docs/INFO_BIN %{buildroot}%{_libdir}/mysql/
 rm -rf %{buildroot}%{_pkgdocdir}/MariaDB-server-%{version}/
 
 mkdir -p %{buildroot}%{logfiledir}
@@ -622,11 +668,11 @@ ln -s %{logfile} %{buildroot}%{old_logfile}
 # current setting in my.cnf is to use /var/run/mariadb for creating pid file,
 # however since my.cnf is not updated by RPM if changed, we need to create mysqld
 # as well because users can have odd settings in their /etc/my.cnf
-mkdir -p %{buildroot}%{_localstatedir}/run/%{mysqld_unit}
+%{?mysqld_unit:mkdir -p %{buildroot}%{_localstatedir}/run/%{mysqld_unit}}
 mkdir -p %{buildroot}%{_localstatedir}/run/%{daemon_name}
 install -p -m 0755 -d %{buildroot}%{_localstatedir}/lib/mysql
 
-%if %{ship_my_cnf}
+%if %{with config}
 install -D -p -m 0644 scripts/my.cnf %{buildroot}%{_sysconfdir}/my.cnf
 %else
 rm -f %{buildroot}%{_sysconfdir}/my.cnf.d/mysql-clients.cnf
@@ -655,6 +701,7 @@ install -D -p -m 755 scripts/mysql.init %{buildroot}%{_initddir}/%{daemon_name}
 install -p -m 755 scripts/mysql-prepare-db-dir %{buildroot}%{_libexecdir}/mysql-prepare-db-dir
 install -p -m 755 scripts/mysql-wait-ready %{buildroot}%{_libexecdir}/mysql-wait-ready
 install -p -m 755 scripts/mysql-check-socket %{buildroot}%{_libexecdir}/mysql-check-socket
+install -p -m 755 scripts/mysql-check-upgrade %{buildroot}%{_libexecdir}/mysql-check-upgrade
 install -p -m 644 scripts/mysql-scripts-common %{buildroot}%{_libexecdir}/mysql-scripts-common
 
 # Remove libmysqld.a
@@ -708,7 +755,7 @@ rm -rf %{buildroot}%{_datadir}/%{name}/SELinux/
 rm -f %{buildroot}%{_sysconfdir}/init.d/mysql
 
 # remove duplicate logrotate script
-rm -f %{buildroot}%{logrotateddir}/mysql
+rm -f %{buildroot}%{_sysconfdir}/logrotate.d/mysql
 
 # remove solaris files
 rm -rf %{buildroot}%{_datadir}/%{name}/solaris/
@@ -716,6 +763,7 @@ rm -rf %{buildroot}%{_datadir}/%{name}/solaris/
 %if %{without clibrary}
 rm -rf %{buildroot}%{_libdir}/mysql/libmysqlclient*.so.*
 rm -rf %{buildroot}%{_sysconfdir}/ld.so.conf.d
+rm -f %{buildroot}%{_sysconfdir}/my.cnf.d/client.cnf
 %endif
 
 %if %{without embedded}
@@ -733,23 +781,29 @@ rm -f %{buildroot}%{_mandir}/man1/mysql_config.1*
 %endif
 
 %if %{without client}
-rm -f %{buildroot}%{_bindir}/{msql2mysql,mysql,mysql_find_rows,mysql_waitpid,\
-mysqlaccess,mysqladmin,mysqlbinlog,mysqlcheck,mysqldump,tokuftdump,mysqlimport,\
-mysqlshow,mysqlslap,my_print_defaults,aria_chk,aria_dump_log,aria_ftdump,\
-aria_pack,aria_read_log}
-rm -f %{buildroot}%{_mandir}/man1/{mysql,mysql_find_rows,mysql_waitpid,\
-mysqlaccess,mysqladmin,mysqldump,mysqlshow,mysqlslap,\
-my_print_defaults}.1*
-rm -f %{buildroot}%{_sysconfdir}/my.cnf.d/{client,connect}.cnf
+rm -f %{buildroot}%{_bindir}/{msql2mysql,mysql,mysql_find_rows,\
+mysql_plugin,mysql_waitpid,mysqlaccess,mysqladmin,mysqlbinlog,mysqlcheck,\
+mysqldump,mysqlimport,mysqlshow,mysqlslap,my_print_defaults}
+rm -f %{buildroot}%{_mandir}/man1/{msql2mysql,mysql,mysql_find_rows,\
+mysql_plugin,mysql_waitpid,mysqlaccess,mysqladmin,mysqlbinlog,mysqlcheck,\
+mysqldump,mysqlshow,mysqlslap,my_print_defaults}.1*
+%endif
+
+%if %{without connect}
+rm -f %{buildroot}%{_sysconfdir}/my.cnf.d/connect.cnf
+%endif
+
+%if %{without config}
+rm -f %{buildroot}%{_sysconfdir}/my.cnf
+rm -f %{buildroot}%{_sysconfdir}/my.cnf.d/mysql-clients.cnf
 %endif
 
 %if %{without common}
-rm -f %{buildroot}%{_sysconfdir}/my.cnf
-rm -f %{buildroot}%{_sysconfdir}/my.cnf.d/mysql-clients.cnf
 rm -rf %{buildroot}%{_datadir}/%{name}/charsets
 %endif
 
 %if %{without errmsg}
+rm -f %{buildroot}%{_datadir}/%{name}/errmsg-utf8.txt
 rm -rf %{buildroot}%{_datadir}/%{name}/{english,czech,danish,dutch,estonian,\
 french,german,greek,hungarian,italian,japanese,korean,norwegian,norwegian-ny,\
 polish,portuguese,romanian,russian,serbian,slovak,spanish,swedish,ukrainian}
@@ -882,61 +936,63 @@ fi
 %{_bindir}/msql2mysql
 %{_bindir}/mysql
 %{_bindir}/mysql_find_rows
+%{_bindir}/mysql_plugin
 %{_bindir}/mysql_waitpid
 %{_bindir}/mysqlaccess
 %{_bindir}/mysqladmin
 %{_bindir}/mysqlbinlog
 %{_bindir}/mysqlcheck
 %{_bindir}/mysqldump
-%{?with_tokudb:%{_bindir}/tokuftdump}
 %{_bindir}/mysqlimport
 %{_bindir}/mysqlshow
 %{_bindir}/mysqlslap
 %{_bindir}/my_print_defaults
-%{_bindir}/aria_chk
-%{_bindir}/aria_dump_log
-%{_bindir}/aria_ftdump
-%{_bindir}/aria_pack
-%{_bindir}/aria_read_log
 
+%{_mandir}/man1/msql2mysql.1*
 %{_mandir}/man1/mysql.1*
 %{_mandir}/man1/mysql_find_rows.1*
+%{_mandir}/man1/mysql_plugin.1*
 %{_mandir}/man1/mysql_waitpid.1*
 %{_mandir}/man1/mysqlaccess.1*
 %{_mandir}/man1/mysqladmin.1*
+%{_mandir}/man1/mysqlbinlog.1*
+%{_mandir}/man1/mysqlcheck.1*
 %{_mandir}/man1/mysqldump.1*
 %{_mandir}/man1/mysqlshow.1*
 %{_mandir}/man1/mysqlslap.1*
 %{_mandir}/man1/my_print_defaults.1*
-
-%config(noreplace) %{_sysconfdir}/my.cnf.d/client.cnf
-%config(noreplace) %{_sysconfdir}/my.cnf.d/connect.cnf
 %endif
 
 %if %{with clibrary}
 %files libs
 %dir %{_libdir}/mysql
 %{_libdir}/mysql/libmysqlclient.so.*
+%{_libdir}/mysql/plugin/dialog.so
+%{_libdir}/mysql/plugin/mysql_clear_password.so
 %{_sysconfdir}/ld.so.conf.d/*
+%config(noreplace) %{_sysconfdir}/my.cnf.d/client.cnf
+%endif
+
+%if %{with config}
+%files config
+# although the default my.cnf contains only server settings, we put it in the
+# common package because it can be used for client settings too.
+%config(noreplace) %{_sysconfdir}/my.cnf
+%dir %{_sysconfdir}/my.cnf.d
+%config(noreplace) %{_sysconfdir}/my.cnf.d/mysql-clients.cnf
 %endif
 
 %if %{with common}
 %files common
 %doc README COPYING COPYING.LESSER README.mysql-license README.mysql-docs
 %doc storage/innobase/COPYING.Percona storage/innobase/COPYING.Google
-# although the default my.cnf contains only server settings, we put it in the
-# common package because it can be used for client settings too.
-%if %{ship_my_cnf}
-%config(noreplace) %{_sysconfdir}/my.cnf
-%dir %{_sysconfdir}/my.cnf.d
-%config(noreplace) %{_sysconfdir}/my.cnf.d/mysql-clients.cnf
-%endif
 %dir %{_datadir}/%{name}
 %{_datadir}/%{name}/charsets
 %endif
 
 %if %{with errmsg}
 %files errmsg
+%{_datadir}/%{name}/errmsg-utf8.txt
 %{_datadir}/%{name}/english
 %lang(cs) %{_datadir}/%{name}/czech
 %lang(da) %{_datadir}/%{name}/danish
@@ -963,8 +1019,13 @@ fi
 %endif
 
 %files server
-%doc support-files/*.cnf README.mysql-cnf
+%doc README.mysql-cnf
 
+%{_bindir}/aria_chk
+%{_bindir}/aria_dump_log
+%{_bindir}/aria_ftdump
+%{_bindir}/aria_pack
+%{_bindir}/aria_read_log
 %{_bindir}/myisamchk
 %{_bindir}/myisam_ftdump
 %{_bindir}/myisamlog
@@ -972,7 +1033,6 @@ fi
 %{_bindir}/mysql_convert_table_format
 %{_bindir}/mysql_fix_extensions
 %{_bindir}/mysql_install_db
-%{_bindir}/mysql_plugin
 %{_bindir}/mysql_secure_installation
 %{_bindir}/mysql_setpermission
 %{_bindir}/mysql_tzinfo_to_sql
@@ -989,6 +1049,7 @@ fi
 %{_bindir}/replace
 %{_bindir}/resolve_stack_dump
 %{_bindir}/resolveip
+%{?with_tokudb:%{_bindir}/tokuftdump}
 
 %config(noreplace) %{_sysconfdir}/my.cnf.d/server.cnf
 %{?with_tokudb:%config(noreplace) %{_sysconfdir}/my.cnf.d/tokudb.cnf}
@@ -1002,9 +1063,16 @@ fi
 %endif
 
 %{_libdir}/mysql/plugin
-%exclude %{_libdir}/mysql/plugin/ha_oqgraph.so
+%{?with_oqgraph:%exclude %{_libdir}/mysql/plugin/ha_oqgraph.so}
+%{?with_connect:%exclude %{_libdir}/mysql/plugin/ha_connect.so}
+%exclude %{_libdir}/mysql/plugin/dialog.so
+%exclude %{_libdir}/mysql/plugin/mysql_clear_password.so
 
-%{_mandir}/man1/msql2mysql.1*
+%{_mandir}/man1/aria_chk.1.gz
+%{_mandir}/man1/aria_dump_log.1.gz
+%{_mandir}/man1/aria_ftdump.1.gz
+%{_mandir}/man1/aria_pack.1.gz
+%{_mandir}/man1/aria_read_log.1.gz
 %{_mandir}/man1/myisamchk.1*
 %{_mandir}/man1/myisamlog.1*
 %{_mandir}/man1/myisampack.1*
@@ -1013,14 +1081,11 @@ fi
 %{_mandir}/man1/mysql.server.1*
 %{_mandir}/man1/mysql_fix_extensions.1*
 %{_mandir}/man1/mysql_install_db.1*
-%{_mandir}/man1/mysql_plugin.1*
 %{_mandir}/man1/mysql_secure_installation.1*
 %{_mandir}/man1/mysql_upgrade.1*
 %{_mandir}/man1/mysql_zap.1*
 %{_mandir}/man1/mysqlbug.1*
 %{_mandir}/man1/mysqldumpslow.1*
-%{_mandir}/man1/mysqlbinlog.1*
-%{_mandir}/man1/mysqlcheck.1*
 %{_mandir}/man1/mysqld_multi.1*
 %{_mandir}/man1/mysqld_safe.1*
 %{_mandir}/man1/mysqlhotcopy.1*
@@ -1035,7 +1100,6 @@ fi
 %{_mandir}/man1/mysql_tzinfo_to_sql.1*
 %{_mandir}/man8/mysqld.8*
 
-%{_datadir}/%{name}/errmsg-utf8.txt
 %{_datadir}/%{name}/fill_help_tables.sql
 %{_datadir}/%{name}/install_spider.sql
 %{_datadir}/%{name}/mysql_system_tables.sql
@@ -1051,10 +1115,11 @@ fi
 %{_libexecdir}/mysql-prepare-db-dir
 %{_libexecdir}/mysql-wait-ready
 %{_libexecdir}/mysql-check-socket
+%{_libexecdir}/mysql-check-upgrade
 %{_libexecdir}/mysql-scripts-common
 
 %{?with_init_systemd:%{_tmpfilesdir}/%{name}.conf}
-%attr(0755,mysql,mysql) %dir %{_localstatedir}/run/%{mysqld_unit}
+%{?mysqld_unit:%attr(0755,mysql,mysql) %dir %{_localstatedir}/run/%{mysqld_unit}}
 %attr(0755,mysql,mysql) %dir %{_localstatedir}/run/%{daemon_name}
 %attr(0755,mysql,mysql) %dir %{_localstatedir}/lib/mysql
 %attr(0750,mysql,mysql) %dir %{logfiledir}
@@ -1065,9 +1130,15 @@ fi
 %config(noreplace) %{logrotateddir}/%{daemon_name}
 
 %if %{with oqgraph}
-%files oqgraph
+%files oqgraph-engine
 %config(noreplace) %{_sysconfdir}/my.cnf.d/oqgraph.cnf
 %{_libdir}/mysql/plugin/ha_oqgraph.so
+%endif
+
+%if %{with connect}
+%files connect-engine
+%config(noreplace) %{_sysconfdir}/my.cnf.d/connect.cnf
+%{_libdir}/mysql/plugin/ha_connect.so
 %endif
 
 %if %{with devel}
@@ -1107,8 +1178,60 @@ fi
 %endif
 
 %changelog
-* Sun Aug 17 2014 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1:10.0.12-8
+* Wed Oct 01 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.14-4
+- Add bcond_without mysql_names
+  Use more correct path when deleting mysql logrotate script
+
+* Wed Oct 01 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.14-3
+- Build with system libedit
+  Resolves: #1079637
+
+* Mon Sep 29 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.14-2
+- Add with_debug option
+
+* Mon Sep 29 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.14-1
+- Update to 10.0.14
+
+* Wed Sep 24 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.13-8
+- Move connect engine to a separate package
+  Rename oqgraph engine to align with upstream packages
+- Move some files to correspond with MariaDB upstream packages
+  client.cnf into -libs, mysql_plugin and msql2mysql into base,
+  tokuftdump and aria_* into -server, errmsg-utf8.txt into -errmsg
+- Remove duplicate cnf files packaged using %%doc
+- Check upgrade script added to warn about need for mysql_upgrade
+
+* Wed Sep 24 2014 Matej Muzila <mmuzila@redhat.com> - 1:10.0.13-7
+- Client related libraries moved from mariadb-server to mariadb-libs
+  Related: #1138843
+
+* Mon Sep 08 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.13-6
+- Disable vcol_supported_sql_funcs_myisam test on all arches
+  Related: #1096787
+- Install systemd service file on RHEL-7+
+  Server requires any mysql package, so it should be fine with older client
+
+* Thu Sep 04 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.13-5
+- Fix paths in mysql_install_db script
+  Resolves: #1134328
+- Use %%cmake macro
+
+* Tue Aug 19 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.13-4
+- Build config subpackage everytime
+- Disable failing tests: innodb_simulate_comp_failures_small, key_cache
+  rhbz#1096787
+
+* Sun Aug 17 2014 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1:10.0.13-3
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_21_22_Mass_Rebuild
+
+* Thu Aug 14 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.13-2
+- Include mysqld_unit only if required; enable tokudb in f20-
+
+* Wed Aug 13 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.13-1
+- Rebase to version 10.0.13
+
+* Tue Aug 12 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.12-8
+- Introduce -config subpackage and ship base config files here
 
 * Tue Aug  5 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.12-7
 - Adopt changes from mysql, thanks Bjorn Munch <bjorn.munch@oracle.com>

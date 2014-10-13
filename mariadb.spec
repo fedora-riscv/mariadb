@@ -107,7 +107,7 @@
 
 Name:             %{pkgname}
 Version:          %{compatver}.%{bugfixver}
-Release:          5%{?with_debug:.debug}%{?dist}
+Release:          6%{?with_debug:.debug}%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -140,6 +140,7 @@ Source51:         rh-skipped-tests-intel.list
 Source52:         rh-skipped-tests-arm.list
 Source53:         rh-skipped-tests-ppc-s390.list
 Source54:         rh-skipped-tests-ppc64le.list
+Source55:         rh-skipped-tests-s390.list
 
 # Comments for these patches are in the patch files
 # Patches common for more mysql-like packages
@@ -495,6 +496,9 @@ MariaDB is a community developed branch of MySQL.
 %patch35 -p1
 %patch36 -p1
 
+# removing bundled cmd-line-utils
+rm -r cmd-line-utils
+
 sed -i -e 's/2.8.7/2.6.4/g' cmake/cpack_rpm.cmake
 
 # workaround for upstream bug #56342
@@ -518,6 +522,10 @@ cat %{SOURCE53} >> mysql-test/rh-skipped-tests.list
 
 %ifarch ppc64le
 cat %{SOURCE54} >> mysql-test/rh-skipped-tests.list
+%endif
+
+%ifarch s390
+cat %{SOURCE55} >> mysql-test/rh-skipped-tests.list
 %endif
 
 cp %{SOURCE2} %{SOURCE3} %{SOURCE10} %{SOURCE11} %{SOURCE12} %{SOURCE13} \
@@ -786,7 +794,7 @@ mysql_plugin,mysql_waitpid,mysqlaccess,mysqladmin,mysqlbinlog,mysqlcheck,\
 mysqldump,mysqlimport,mysqlshow,mysqlslap,my_print_defaults}
 rm -f %{buildroot}%{_mandir}/man1/{msql2mysql,mysql,mysql_find_rows,\
 mysql_plugin,mysql_waitpid,mysqlaccess,mysqladmin,mysqlbinlog,mysqlcheck,\
-mysqldump,mysqlshow,mysqlslap,my_print_defaults}.1*
+mysqldump,mysqlimport,mysqlshow,mysqlslap,my_print_defaults}.1*
 %endif
 
 %if %{without connect}
@@ -958,6 +966,7 @@ fi
 %{_mandir}/man1/mysqlbinlog.1*
 %{_mandir}/man1/mysqlcheck.1*
 %{_mandir}/man1/mysqldump.1*
+%{_mandir}/man1/mysqlimport.1*
 %{_mandir}/man1/mysqlshow.1*
 %{_mandir}/man1/mysqlslap.1*
 %{_mandir}/man1/my_print_defaults.1*
@@ -1089,7 +1098,6 @@ fi
 %{_mandir}/man1/mysqld_multi.1*
 %{_mandir}/man1/mysqld_safe.1*
 %{_mandir}/man1/mysqlhotcopy.1*
-%{_mandir}/man1/mysqlimport.1*
 %{_mandir}/man1/mysql_setpermission.1*
 %{_mandir}/man1/mysqltest.1*
 %{_mandir}/man1/innochecksum.1*
@@ -1178,6 +1186,13 @@ fi
 %endif
 
 %changelog
+* Mon Oct 13 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.14-6
+- Remove bundled cmd-line-utils
+  Related: #1079637
+- Move mysqlimport man page to proper package
+- Disable main.key_cache test on s390
+  Releated: #1149647
+
 * Wed Oct 08 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.14-5
 - Disable tests connect.part_file, connect.part_table 
   and connect.updelx

@@ -10,7 +10,7 @@
 %endif
 
 Name: mariadb
-Version: 5.5.39
+Version: 5.5.40
 Release: 1%{?dist}
 Epoch: 1
 
@@ -446,8 +446,8 @@ chmod 755 ${RPM_BUILD_ROOT}%{_bindir}/mysql_config
 
 # install INFO_SRC, INFO_BIN into libdir (upstream thinks these are doc files,
 # but that's pretty wacko --- see also mariadb-file-contents.patch)
-mv ${RPM_BUILD_ROOT}%{_pkgdocdir}/INFO_SRC ${RPM_BUILD_ROOT}%{_libdir}/mysql/
-mv ${RPM_BUILD_ROOT}%{_pkgdocdir}/INFO_BIN ${RPM_BUILD_ROOT}%{_libdir}/mysql/
+install -p Docs/INFO_SRC ${RPM_BUILD_ROOT}%{_libdir}/mysql/
+install -p Docs/INFO_BIN ${RPM_BUILD_ROOT}%{_libdir}/mysql/
 
 mkdir -p $RPM_BUILD_ROOT%{_localstatedir}/log/mariadb
 chmod 0750 $RPM_BUILD_ROOT%{_localstatedir}/log/mariadb
@@ -804,6 +804,9 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Tue Oct 14 2014 Honza Horak <hhorak@redhat.com> - 1:5.5.40-1
+- Rebase to 5.5.40
+
 * Fri Aug 22 2014 Honza Horak <hhorak@redhat.com> - 1:5.5.39-1
 - Update to 5.5.39
 

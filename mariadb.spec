@@ -10,7 +10,7 @@
 %endif
 
 Name: mariadb
-Version: 5.5.39
+Version: 5.5.40
 Release: 1%{?dist}
 Epoch: 1
 
@@ -787,6 +787,9 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Tue Oct 14 2014 Honza Horak <hhorak@redhat.com> - 1:5.5.40-1
+- Rebase to 5.5.40
+
 * Fri Aug 22 2014 Honza Horak <hhorak@redhat.com> - 1:5.5.39-1
 - Update to 5.5.39
 

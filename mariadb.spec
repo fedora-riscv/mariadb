@@ -62,6 +62,9 @@
 %bcond_without init_systemd
 %bcond_with init_sysv
 %global daemon_name %{name}
+# Provide temporary service file name that will be removed after some time
+# (Fedora 22?)
+%global mysqld_unit mysqld
 %else
 %bcond_with init_systemd
 %bcond_without init_sysv
@@ -81,6 +84,9 @@
 %global logrotateddir %{_sysconfdir}/logrotate.d
 %global logfiledir %{_localstatedir}/log/%{daemon_name}
 %global logfile %{logfiledir}/%{daemon_name}.log
+%if 0%{?fedora} >= 20
+%global old_logfile %{_localstatedir}/log/mysqld.log
+%endif
 
 # Defining where database data live
 %global dbdatadir %{_localstatedir}/lib/mysql
@@ -96,6 +102,15 @@
 %bcond_without mysql_names
 %bcond_without conflicts
 
+# When replacing mysql by mariadb these packages are not upated, but rather
+# installed and uninstalled. Thus we loose information about mysqld service
+# enablement. To address this we use a file to store that information within
+# the transaction. Basically the file is created when mysqld is enabled in
+# the beginning of the transaction and mysqld is enabled again in the end
+# of the transaction in case this flag file exists.
+%global mysqld_enabled_flag_file %{_localstatedir}/lib/rpm-state/mysqld_enabled
+%global mysqld_running_flag_file %{_localstatedir}/lib/rpm-state/mysqld_running
+
 # Make long macros shorter
 %global sameevr   %{epoch}:%{version}-%{release}
 %global compatver 10.0
@@ -103,7 +118,7 @@
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          2%{?with_debug:.debug}%{?dist}
+Release:          3%{?with_debug:.debug}%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -128,6 +143,8 @@ Source13:         mysql-wait-ready.sh
 Source14:         mysql-check-socket.sh
 Source15:         mysql-scripts-common.sh
 Source16:         mysql-check-upgrade.sh
+Source17:         mysql-compat.service.in
+Source18:         mysql-compat.conf.in
 Source19:         mysql.init.in
 Source50:         rh-skipped-tests-base.list
 Source51:         rh-skipped-tests-intel.list
@@ -153,6 +170,7 @@ Patch31:          %{pkgnamepatch}-string-overflow.patch
 Patch32:          %{pkgnamepatch}-basedir.patch
 Patch33:          %{pkgnamepatch}-covscan-signexpr.patch
 Patch34:          %{pkgnamepatch}-covscan-stroverflow.patch
+Patch35:          %{pkgnamepatch}-config.patch
 Patch36:          %{pkgnamepatch}-ssltest.patch
 
 BuildRequires:    cmake
@@ -488,6 +506,7 @@ MariaDB is a community developed branch of MySQL.
 %patch32 -p1
 %patch33 -p1
 %patch34 -p1
+%patch35 -p1
 %patch36 -p1
 
 # removing bundled cmd-line-utils
@@ -523,7 +542,7 @@ cat %{SOURCE55} >> mysql-test/rh-skipped-tests.list
 %endif
 
 cp %{SOURCE2} %{SOURCE3} %{SOURCE10} %{SOURCE11} %{SOURCE12} %{SOURCE13} \
-   %{SOURCE14} %{SOURCE15} %{SOURCE16} %{SOURCE19} \
+   %{SOURCE14} %{SOURCE15} %{SOURCE16} %{SOURCE17} %{SOURCE18} %{SOURCE19} \
    scripts
 
 %build
@@ -569,8 +588,13 @@ export LDFLAGS
          -DFEATURE_SET="community" \
          -DINSTALL_LAYOUT=RPM \
          -DDAEMON_NAME="%{daemon_name}" \
+%if 0%{?mysqld_unit:1}
+         -DDAEMON_NAME_COMPAT="%{mysqld_unit}" \
+%endif
          -DLOG_LOCATION="%{logfile}" \
+         -DLOG_LOCATION_COMPAT="%{old_logfile}" \
          -DPID_FILE_DIR="%{_localstatedir}/run/%{daemon_name}" \
+         -DPID_FILE_DIR_COMPAT="%{_localstatedir}/run/%{mysqld_unit}" \
          -DNICE_PROJECT_NAME="MariaDB" \
          -DRPM="%{?rhel:rhel%{rhel}}%{!?rhel:fedora%{fedora}}" \
          -DCMAKE_INSTALL_PREFIX="%{_prefix}" \
@@ -659,10 +683,14 @@ rm -rf %{buildroot}%{_pkgdocdir}/MariaDB-server-%{version}/
 mkdir -p %{buildroot}%{logfiledir}
 chmod 0750 %{buildroot}%{logfiledir}
 touch %{buildroot}%{logfile}
+%if 0%{?old_logfile:1}
+ln -s %{logfile} %{buildroot}%{old_logfile}
+%endif
 
 # current setting in my.cnf is to use /var/run/mariadb for creating pid file,
 # however since my.cnf is not updated by RPM if changed, we need to create mysqld
 # as well because users can have odd settings in their /etc/my.cnf
+%{?mysqld_unit:mkdir -p %{buildroot}%{_localstatedir}/run/%{mysqld_unit}}
 mkdir -p %{buildroot}%{_localstatedir}/run/%{daemon_name}
 install -p -m 0755 -d %{buildroot}%{dbdatadir}
 
@@ -677,6 +705,13 @@ rm -f %{buildroot}%{_sysconfdir}/my.cnf
 %if %{with init_systemd}
 install -D -p -m 644 scripts/mysql.service %{buildroot}%{_unitdir}/%{daemon_name}.service
 install -D -p -m 0644 scripts/mysql.tmpfiles.d %{buildroot}%{_tmpfilesdir}/%{name}.conf
+%endif
+
+# install alternative systemd unit file for compatibility reasons
+%if 0%{?mysqld_unit:1}
+install -p -m 644 scripts/mysql-compat.service %{buildroot}%{_unitdir}/%{mysqld_unit}.service
+mkdir -p %{buildroot}%{_unitdir}/%{daemon_name}.service.d
+install -p -m 644 scripts/mysql-compat.conf %{buildroot}%{_unitdir}/%{daemon_name}.service.d/mysql-compat.conf
 %endif
 
 # install SysV init script
@@ -841,6 +876,34 @@ export MTR_BUILD_THREAD=%{__isa_bits}
 /usr/sbin/groupadd -g 27 -o -r mysql >/dev/null 2>&1 || :
 /usr/sbin/useradd -M -N -g mysql -o -r -d %{mysqluserhome} -s /sbin/nologin \
   -c "MySQL Server" -u 27 mysql >/dev/null 2>&1 || :
+
+%if %{with init_systemd}
+# Explicitly enable mysqld if it was enabled in the beginning
+# of the transaction. Otherwise mysqld is disabled always when
+# replacing mysql with mariadb, because it is not recognized
+# as updating, but rather as removal and install.
+if /bin/systemctl is-enabled mysqld.service >/dev/null 2>&1 ; then
+    touch %mysqld_enabled_flag_file >/dev/null 2>&1 || :
+fi
+
+# Since mysqld.service became a symlink to mariadb.service, turning off
+# the running mysqld service doesn't work fine (BZ#1002996). As a work-around
+# we explicitly stop mysqld before upgrade and start after it again.
+if [ ! -L %{_unitdir}/mysqld.service ] && /bin/systemctl is-active mysqld.service &>/dev/null ; then
+    touch %mysqld_running_flag_file >/dev/null 2>&1 || :
+    /bin/systemctl stop mysqld.service >/dev/null 2>&1 || :
+fi
+
+%posttrans server
+if [ -f %mysqld_enabled_flag_file ] ; then
+    /bin/systemctl enable %{daemon_name}.service >/dev/null 2>&1 || :
+    rm -f %mysqld_enabled_flag_file >/dev/null 2>&1 || :
+fi
+if [ -f %mysqld_running_flag_file ] ; then
+    /bin/systemctl start %{daemon_name}.service >/dev/null 2>&1 || :
+    rm -f %mysqld_running_flag_file >/dev/null 2>&1 || :
+fi
+%endif
 
 %if %{with clibrary}
 %post libs -p /sbin/ldconfig
@@ -1069,6 +1132,8 @@ fi
 %{?with_mroonga:%{_datadir}/%{name}/mroonga/uninstall.sql}
 %{_datadir}/%{name}/my-*.cnf
 
+%{?mysqld_unit:%{_unitdir}/%{mysqld_unit}.service}
+%{?mysqld_unit:%{_unitdir}/%{daemon_name}.service.d/mysql-compat.conf}
 %{?with_init_systemd:%{_unitdir}/%{daemon_name}.service}
 %{?with_init_sysv:%{_initddir}/%{daemon_name}}
 %{_libexecdir}/mysql-prepare-db-dir
@@ -1078,10 +1143,14 @@ fi
 %{_libexecdir}/mysql-scripts-common
 
 %{?with_init_systemd:%{_tmpfilesdir}/%{name}.conf}
+%{?mysqld_unit:%attr(0755,mysql,mysql) %dir %{_localstatedir}/run/%{mysqld_unit}}
 %attr(0755,mysql,mysql) %dir %{_localstatedir}/run/%{daemon_name}
 %attr(0755,mysql,mysql) %dir %{dbdatadir}
 %attr(0750,mysql,mysql) %dir %{logfiledir}
 %attr(0640,mysql,mysql) %config %ghost %verify(not md5 size mtime) %{logfile}
+%if 0%{?old_logfile:1}
+                        %config %ghost %verify(not md5 size mtime) %{old_logfile}
+%endif
 %config(noreplace) %{logrotateddir}/%{daemon_name}
 
 %if %{with oqgraph}
@@ -1133,6 +1202,9 @@ fi
 %endif
 
 %changelog
+* Mon Dec 22 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.15-3
+- Revert removing compat files, will do for F22
+
 * Fri Dec 05 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.15-2
 - Rework usage of macros and remove some compatibility artefacts
 

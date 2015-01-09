@@ -10,8 +10,8 @@
 %endif
 
 Name: mariadb
-Version: 5.5.40
-Release: 2%{?dist}
+Version: 5.5.41
+Release: 1%{?dist}
 Epoch: 1
 
 Summary: A community developed branch of MySQL
@@ -39,7 +39,7 @@ License: GPLv2 with exceptions and LGPLv2 and BSD
 %global mysqld_enabled_flag_file %{_localstatedir}/lib/rpm-state/mysqld_enabled
 %global mysqld_running_flag_file %{_localstatedir}/lib/rpm-state/mysqld_running
 
-Source0: http://ftp.osuosl.org/pub/mariadb/mariadb-%{version}/kvm-tarbake-jaunty-x86/mariadb-%{version}.tar.gz
+Source0: http://ftp.osuosl.org/pub/mariadb/mariadb-%{version}/source/mariadb-%{version}.tar.gz
 Source3: my.cnf
 Source5: my_config.h
 Source6: README.mysql-docs
@@ -63,7 +63,7 @@ Patch5: mariadb-versioning.patch
 Patch6: mariadb-dubious-exports.patch
 Patch7: mariadb-s390-tsc.patch
 Patch8: mariadb-logrotate.patch
-Patch9: mariadb-cipherspec.patch
+Patch9: mariadb-cipherreplace.patch
 Patch10: mariadb-file-contents.patch
 Patch11: mariadb-string-overflow.patch
 Patch12: mariadb-dh1024.patch
@@ -72,7 +72,6 @@ Patch17: mariadb-covscan-signexpr.patch
 Patch18: mariadb-covscan-stroverflow.patch
 Patch19: mariadb-config.patch
 Patch20: mariadb-ssltest.patch
-Patch21: mariadb-header-bz1173702.patch
 
 BuildRequires: perl, readline-devel, openssl-devel
 BuildRequires: cmake, ncurses-devel, zlib-devel, libaio-devel
@@ -277,7 +276,6 @@ MariaDB is a community developed branch of MySQL.
 %patch18 -p1
 %patch19 -p1
 %patch20 -p1
-%patch21 -p1
 
 # workaround for upstream bug #56342
 rm -f mysql-test/t/ssl_8k_key-master.opt
@@ -806,6 +804,10 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Fri Jan 09 2015 Honza Horak <hhorak@redhat.com> - 1:5.5.41-1
+- Rebase to 5.5.41
+  https://kb.askmonty.org/en/mariadb-5541-changelog/
+
 * Mon Dec 15 2014 Honza Horak <hhorak@redhat.com> - 1:5.5.40-2
 - Fix header to let dependencies to build fine
   Resolves: #1173702

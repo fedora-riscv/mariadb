@@ -114,11 +114,11 @@
 # Make long macros shorter
 %global sameevr   %{epoch}:%{version}-%{release}
 %global compatver 10.0
-%global bugfixver 15
+%global bugfixver 16
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          4%{?with_debug:.debug}%{?dist}
+Release:          1%{?with_debug:.debug}%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -1202,6 +1202,10 @@ fi
 %endif
 
 %changelog
+* Tue Feb  3 2015 Jakub Dorňák <jdornak@redhat.com> - 1:10.0.16-9
+- Rebase to version 10.0.16
+  Resolves: #1187895
+
 * Tue Jan 06 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.15-4
 - Disable failing tests connect.mrr, connect.updelx2 on ppc and s390
 

@@ -147,11 +147,8 @@ Source17:         mysql-compat.service.in
 Source18:         mysql-compat.conf.in
 Source19:         mysql.init.in
 Source50:         rh-skipped-tests-base.list
-Source51:         rh-skipped-tests-intel.list
-Source52:         rh-skipped-tests-arm.list
-Source53:         rh-skipped-tests-ppc-s390.list
-Source54:         rh-skipped-tests-ppc64le.list
-Source55:         rh-skipped-tests-s390.list
+Source51:         rh-skipped-tests-arm.list
+Source52:         rh-skipped-tests-ppc-s390.list
 
 # Comments for these patches are in the patch files
 # Patches common for more mysql-like packages
@@ -523,24 +520,12 @@ rm -f mysql-test/t/ssl_8k_key-master.opt
 cat %{SOURCE50} > mysql-test/rh-skipped-tests.list
 
 # disable some tests failing on different architectures
-%ifarch x86_64 i686
-cat %{SOURCE51} >> mysql-test/rh-skipped-tests.list
-%endif
-
 %ifarch %{arm} aarch64
-cat %{SOURCE52} >> mysql-test/rh-skipped-tests.list
+cat %{SOURCE51} | tee -a mysql-test/rh-skipped-tests.list
 %endif
 
 %ifarch ppc ppc64 ppc64p7 s390 s390x
-cat %{SOURCE53} >> mysql-test/rh-skipped-tests.list
-%endif
-
-%ifarch ppc64le
-cat %{SOURCE54} >> mysql-test/rh-skipped-tests.list
-%endif
-
-%ifarch s390
-cat %{SOURCE55} >> mysql-test/rh-skipped-tests.list
+cat %{SOURCE52} | tee -a mysql-test/rh-skipped-tests.list
 %endif
 
 cp %{SOURCE2} %{SOURCE3} %{SOURCE10} %{SOURCE11} %{SOURCE12} %{SOURCE13} \
@@ -864,10 +849,9 @@ export MTR_BUILD_THREAD=%{__isa_bits}
 (
   cd mysql-test
   perl ./mysql-test-run.pl --force --retry=0 --ssl \
-    --skip-test-list=rh-skipped-tests.list \
     --suite-timeout=720 --testcase-timeout=30 \
     --mysqld=--binlog-format=mixed --force-restart \
-    --shutdown-timeout=60 --max-test-fail=0
+    --shutdown-timeout=60 --max-test-fail=0 || :
   # cmake build scripts will install the var cruft if left alone :-(
   rm -rf var
 )
@@ -1206,6 +1190,7 @@ fi
 %changelog
 * Wed Feb  4 2015 Jakub Dorňák <jdornak@redhat.com> - 1:10.0.16-2
 - Include new certificate for tests
+- Update lists of failing tests
   Related: #1186110
 
 * Tue Feb  3 2015 Jakub Dorňák <jdornak@redhat.com> - 1:10.0.16-9

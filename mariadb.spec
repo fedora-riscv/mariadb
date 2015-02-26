@@ -10,7 +10,7 @@
 %endif
 
 Name: mariadb
-Version: 5.5.41
+Version: 5.5.42
 Release: 1%{?dist}
 Epoch: 1
 
@@ -804,6 +804,9 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Thu Feb 26 2015 Matej Muzila <mmuzila@redhat.com> -1:5.5.42-1
+- Rebase to 5.5.42
+
 * Fri Jan 09 2015 Honza Horak <hhorak@redhat.com> - 1:5.5.41-1
 - Rebase to 5.5.41
   https://kb.askmonty.org/en/mariadb-5541-changelog/

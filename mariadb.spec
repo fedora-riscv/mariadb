@@ -114,11 +114,11 @@
 # Make long macros shorter
 %global sameevr   %{epoch}:%{version}-%{release}
 %global compatver 10.0
-%global bugfixver 16
+%global bugfixver 17
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          4%{?with_debug:.debug}%{?dist}
+Release:          1%{?with_debug:.debug}%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -160,7 +160,6 @@ Patch5:           %{pkgnamepatch}-file-contents.patch
 Patch6:           %{pkgnamepatch}-dh1024.patch
 Patch7:           %{pkgnamepatch}-scripts.patch
 Patch8:           %{pkgnamepatch}-install-db-sharedir.patch
-Patch10:          %{pkgnamepatch}-expired-certs.patch
 
 # Patches specific for this mysql package
 Patch30:          %{pkgnamepatch}-errno.patch
@@ -499,7 +498,6 @@ MariaDB is a community developed branch of MySQL.
 %patch6 -p1
 %patch7 -p1
 %patch8 -p1
-%patch10 -p1
 %patch30 -p1
 %patch31 -p1
 %patch32 -p1
@@ -1189,6 +1187,9 @@ fi
 %endif
 
 %changelog
+* Wed Mar 04 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.17-1
+- Rebase to version 10.0.17
+
 * Wed Feb 18 2015 Matej Muzila <mmuzila@redhat.com> - 1:10.0.16-3
 - Enable tokudb
 

@@ -114,7 +114,7 @@
 # Make long macros shorter
 %global sameevr   %{epoch}:%{version}-%{release}
 %global compatver 10.0
-%global bugfixver 17
+%global bugfixver 18
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
@@ -157,7 +157,6 @@ Patch2:           %{pkgnamepatch}-install-test.patch
 Patch3:           %{pkgnamepatch}-s390-tsc.patch
 Patch4:           %{pkgnamepatch}-logrotate.patch
 Patch5:           %{pkgnamepatch}-file-contents.patch
-Patch6:           %{pkgnamepatch}-dh1024.patch
 Patch7:           %{pkgnamepatch}-scripts.patch
 Patch8:           %{pkgnamepatch}-install-db-sharedir.patch
 
@@ -168,7 +167,6 @@ Patch32:          %{pkgnamepatch}-basedir.patch
 Patch33:          %{pkgnamepatch}-covscan-signexpr.patch
 Patch34:          %{pkgnamepatch}-covscan-stroverflow.patch
 Patch35:          %{pkgnamepatch}-config.patch
-Patch36:          %{pkgnamepatch}-ssltest.patch
 
 BuildRequires:    cmake
 BuildRequires:    libaio-devel
@@ -495,7 +493,6 @@ MariaDB is a community developed branch of MySQL.
 %patch3 -p1
 %patch4 -p1
 %patch5 -p1
-%patch6 -p1
 %patch7 -p1
 %patch8 -p1
 %patch30 -p1
@@ -504,7 +501,6 @@ MariaDB is a community developed branch of MySQL.
 %patch33 -p1
 %patch34 -p1
 %patch35 -p1
-%patch36 -p1
 
 # removing bundled cmd-line-utils
 rm -r cmd-line-utils
@@ -1187,6 +1183,9 @@ fi
 %endif
 
 %changelog
+* Thu May 07 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.18-1
+- Update to 10.0.18
+
 * Wed Mar 04 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.17-1
 - Rebase to version 10.0.17
 

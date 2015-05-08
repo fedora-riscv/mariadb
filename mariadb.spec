@@ -167,6 +167,7 @@ Patch32:          %{pkgnamepatch}-basedir.patch
 Patch33:          %{pkgnamepatch}-covscan-signexpr.patch
 Patch34:          %{pkgnamepatch}-covscan-stroverflow.patch
 Patch35:          %{pkgnamepatch}-config.patch
+Patch36:          %{pkgnamepatch}-ssltest.patch
 
 BuildRequires:    cmake
 BuildRequires:    libaio-devel
@@ -501,6 +502,7 @@ MariaDB is a community developed branch of MySQL.
 %patch33 -p1
 %patch34 -p1
 %patch35 -p1
+%patch36 -p1
 
 # removing bundled cmd-line-utils
 rm -r cmd-line-utils

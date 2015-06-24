@@ -114,11 +114,11 @@
 # Make long macros shorter
 %global sameevr   %{epoch}:%{version}-%{release}
 %global compatver 10.0
-%global bugfixver 19
+%global bugfixver 20
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          2%{?with_debug:.debug}%{?dist}
+Release:          1%{?with_debug:.debug}%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -1185,6 +1185,9 @@ fi
 %endif
 
 %changelog
+* Tue Jun 23 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.20-1
+- Update to 10.0.20
+
 * Wed Jun 03 2015 Dan Horák <dan[at]danny.cz> - 1:10.0.19-2
 - Update lists of failing tests (jdornak)
   Related: #1149647

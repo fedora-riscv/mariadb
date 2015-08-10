@@ -114,7 +114,7 @@
 # Make long macros shorter
 %global sameevr   %{epoch}:%{version}-%{release}
 %global compatver 10.0
-%global bugfixver 20
+%global bugfixver 21
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
@@ -1186,6 +1186,9 @@ fi
 %endif
 
 %changelog
+* Mon Aug 10 2015 Jakub Dorňák <jdornak@redhat.com> - 1:10.0.21-1
+- Update to 10.0.21
+
 * Tue Jun 23 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.20-1
 - Update to 10.0.20
 

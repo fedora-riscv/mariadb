@@ -112,11 +112,11 @@
 # Make long macros shorter
 %global sameevr   %{epoch}:%{version}-%{release}
 %global compatver 10.1
-%global bugfixver 8
+%global bugfixver 10
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          3%{?with_debug:.debug}%{?dist}
+Release:          1%{?with_debug:.debug}%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -491,7 +491,6 @@ MariaDB is a community developed branch of MySQL.
 
 %patch1 -p1
 %patch2 -p1
-%patch3 -p1
 %patch4 -p1
 %patch5 -p1
 %patch7 -p1
@@ -1171,6 +1170,9 @@ fi
 %endif
 
 %changelog
+* Tue Jan 19 2016 Jakub Dorňák <jdornak@redhat.com> - 1:10.1.10-1
+- Update to 10.1.10
+
 * Mon Dec 07 2015 Dan Horák <dan[at]danny.cz> - 1:10.1.8-3
 - rebuilt for s390(x)
 

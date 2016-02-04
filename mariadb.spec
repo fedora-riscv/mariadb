@@ -113,7 +113,7 @@
 # Make long macros shorter
 %global sameevr   %{epoch}:%{version}-%{release}
 %global compatver 10.0
-%global bugfixver 21
+%global bugfixver 23
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
@@ -164,7 +164,6 @@ Patch12:          %{pkgnamepatch}-admincrash.patch
 Patch30:          %{pkgnamepatch}-errno.patch
 Patch31:          %{pkgnamepatch}-string-overflow.patch
 Patch32:          %{pkgnamepatch}-basedir.patch
-Patch33:          %{pkgnamepatch}-covscan-signexpr.patch
 Patch34:          %{pkgnamepatch}-covscan-stroverflow.patch
 Patch36:          %{pkgnamepatch}-ssltest.patch
 Patch37:          %{pkgnamepatch}-notestdb.patch
@@ -503,7 +502,6 @@ MariaDB is a community developed branch of MySQL.
 %patch30 -p1
 %patch31 -p1
 %patch32 -p1
-%patch33 -p1
 %patch34 -p1
 %patch36 -p1
 %patch37 -p1
@@ -1152,6 +1150,9 @@ fi
 %endif
 
 %changelog
+* Thu Feb 04 2016 Honza Horak <hhorak@redhat.com> - 1:10.0.23-1
+- Update to 10.0.23
+
 * Mon Aug 10 2015 Jakub Dorňák <jdornak@redhat.com> - 1:10.0.21-1
 - Update to 10.0.21
 

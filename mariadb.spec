@@ -116,7 +116,7 @@
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          2%{?with_debug:.debug}%{?dist}
+Release:          3%{?with_debug:.debug}%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -1149,9 +1149,13 @@ fi
 %endif
 
 %changelog
+* Thu Jul 21 2016 Jakub Dorňák <jdornak@redhat.com> - 1:10.0.25-3
+- use uname -n instead of hostname
+  Resolves: #1317907
+
 * Mon Jul 18 2016 Honza Horak <hhorak@redhat.com> - 1:10.0.25-2
 - Check datadir more carefully to avoid unwanted data corruption
-Related: #1335849
+  Related: #1335849
 
 * Fri Jun 24 2016 Honza Horak <hhorak@redhat.com> - 1:10.0.25-1
 - Rebase to 10.0.25

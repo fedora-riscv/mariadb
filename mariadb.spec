@@ -24,7 +24,6 @@
 # TokuDB engine is now part of MariaDB, but it is available only for x86_64;
 # variable tokudb allows to build with TokuDB storage engine
 # Temporarily disabled in F21+ for https://mariadb.atlassian.net/browse/MDEV-6446
-#%ifarch 0%{?fedora} < 21 #x86_64
 %ifarch x86_64
 %bcond_without tokudb
 %else
@@ -113,7 +112,7 @@
 # Make long macros shorter
 %global sameevr   %{epoch}:%{version}-%{release}
 %global compatver 10.0
-%global bugfixver 23
+%global bugfixver 24
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
@@ -1150,6 +1149,9 @@ fi
 %endif
 
 %changelog
+* Fri Apr 22 2016 Honza Horak <hhorak@redhat.com> - 1:10.0.24-1
+- Rebase to 10.0.24
+
 * Thu Feb 04 2016 Honza Horak <hhorak@redhat.com> - 1:10.0.23-1
 - Update to 10.0.23
 

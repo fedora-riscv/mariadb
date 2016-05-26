@@ -116,7 +116,7 @@
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          1%{?with_debug:.debug}%{?dist}
+Release:          2%{?with_debug:.debug}%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -1149,6 +1149,10 @@ fi
 %endif
 
 %changelog
+* Thu May 26 2016 Jakub Dorňák <jdornak@redhat.com> - 1:10.0.24-2
+- Fix mysql-prepare-db-dir
+  Resolves: #1335849
+
 * Fri Apr 22 2016 Honza Horak <hhorak@redhat.com> - 1:10.0.24-1
 - Rebase to 10.0.24
 

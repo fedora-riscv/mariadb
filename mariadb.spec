@@ -112,11 +112,11 @@
 # Make long macros shorter
 %global sameevr   %{epoch}:%{version}-%{release}
 %global compatver 10.0
-%global bugfixver 24
+%global bugfixver 25
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          2%{?with_debug:.debug}%{?dist}
+Release:          1%{?with_debug:.debug}%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -1149,6 +1149,9 @@ fi
 %endif
 
 %changelog
+* Fri Jun 24 2016 Honza Horak <hhorak@redhat.com> - 1:10.0.25-1
+- Rebase to 10.0.25
+
 * Thu May 26 2016 Jakub Dorňák <jdornak@redhat.com> - 1:10.0.24-2
 - Fix mysql-prepare-db-dir
   Resolves: #1335849

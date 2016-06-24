@@ -1,9 +1,9 @@
 Improve the documentation that will be installed in the mysql-test RPM.
 
-diff -up mariadb-10.0.10/mysql-test/README.p3 mariadb-10.0.10/mysql-test/README
---- mariadb-10.0.10/mysql-test/README.p3	2014-04-07 16:05:51.402631548 +0200
-+++ mariadb-10.0.10/mysql-test/README	2014-04-07 16:06:06.137637991 +0200
-@@ -1,15 +1,28 @@
+diff -up mariadb-10.0.25/mysql-test/README.install-test mariadb-10.0.25/mysql-test/README
+--- mariadb-10.0.25/mysql-test/README.install-test	2016-06-24 16:54:09.571191775 +0200
++++ mariadb-10.0.25/mysql-test/README	2016-06-24 16:54:17.845206909 +0200
+@@ -1,17 +1,30 @@
 -This directory contains a test suite for the MySQL daemon. To run
 -the currently existing test cases, simply execute ./mysql-test-run in
 -this directory. It will fire up the newly built mysqld and test it.
@@ -35,15 +35,18 @@ diff -up mariadb-10.0.10/mysql-test/README.p3 mariadb-10.0.10/mysql-test/README
 +if you want to check whether such failures occur for you.  Documentation
 +about the reasons for omitting such tests can be found in the file
 +rh-skipped-tests.list.
-+
+ 
+-https://mariadb.com/kb/en/reporting-bugs
 +To clean up afterwards, remove the created "var" subdirectory, eg
 +       # su -s /bin/bash - mysql -c "rm -rf /usr/share/mysql-test/var"
 +
 +If one or more tests fail on your system, please read the following manual
 +section for instructions on how to report the problem:
++
++http://kb.askmonty.org/v/reporting-bugs
  
- http://kb.askmonty.org/v/reporting-bugs
- 
+ If you want to use an already running MySQL server for specific tests,
+ use the --extern option to mysql-test-run. Please note that in this mode,
 @@ -26,7 +39,8 @@ other relevant options.
  
  With no test cases named on the command line, mysql-test-run falls back

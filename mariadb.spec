@@ -112,11 +112,11 @@
 # Make long macros shorter
 %global sameevr   %{epoch}:%{version}-%{release}
 %global compatver 10.0
-%global bugfixver 25
+%global bugfixver 26
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          3%{?with_debug:.debug}%{?dist}
+Release:          1%{?with_debug:.debug}%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -166,6 +166,7 @@ Patch32:          %{pkgnamepatch}-basedir.patch
 Patch34:          %{pkgnamepatch}-covscan-stroverflow.patch
 Patch36:          %{pkgnamepatch}-ssltest.patch
 Patch37:          %{pkgnamepatch}-notestdb.patch
+Patch38:          %{pkgnamepatch}-test-multi_update.patch
 
 BuildRequires:    cmake
 BuildRequires:    libaio-devel
@@ -504,6 +505,7 @@ MariaDB is a community developed branch of MySQL.
 %patch34 -p1
 %patch36 -p1
 %patch37 -p1
+%patch38 -p1
 
 # removing bundled cmd-line-utils is now disabled
 # we cannot use libedit due #1201988
@@ -1149,6 +1151,10 @@ fi
 %endif
 
 %changelog
+* Tue Aug  9 2016 Jakub Dorňák <jdornak@redhat.com> - 1:10.0.26-1
+- Rebase to 10.0.26
+  fixes for CVE-2016-3477 CVE-2016-3521 CVE-2016-3615 CVE-2016-5440
+
 * Thu Jul 21 2016 Jakub Dorňák <jdornak@redhat.com> - 1:10.0.25-3
 - use uname -n instead of hostname
   Resolves: #1317907

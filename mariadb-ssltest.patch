@@ -84,3 +84,34 @@ diff -up mariadb-10.0.25/mysql-test/t/ssl_timeout.test.ssl-tests mariadb-10.0.25
  SHOW STATUS LIKE 'Ssl_cipher';
  
  # --error CR_SERVER_LOST
+diff -up mariadb-10.0.26/mysql-test/t/ssl_ca.test.ssl-tests mariadb-10.0.26/mysql-test/t/ssl_ca.test
+--- mariadb-10.0.26/mysql-test/t/ssl_ca.test.ssl-tests	2016-08-12 18:33:51.331294735 +0200
++++ mariadb-10.0.26/mysql-test/t/ssl_ca.test	2016-08-12 18:35:32.154298724 +0200
+@@ -10,7 +10,7 @@
+ --exec $MYSQL --ssl-ca=$MYSQL_TEST_DIR/std_data/wrong-cacert.pem --ssl-key=$MYSQL_TEST_DIR/std_data/client-key.pem --ssl-cert=$MYSQL_TEST_DIR/std_data/client-cert.pem test -e "SHOW STATUS LIKE 'Ssl_cipher'" 2>&1
+ 
+ --echo # try to connect with correct '--ssl-ca' path : should connect
+---replace_result DHE-RSA-AES256-GCM-SHA384 DHE-RSA-AES256-SHA
++--replace_result DHE-RSA-AES256-GCM-SHA384 DHE-RSA-AES256-SHA DHE-RSA-CHACHA20-POLY1305 DHE-RSA-AES256-SHA AES256-GCM-SHA384 DHE-RSA-AES256-SHA
+ --exec $MYSQL --ssl-ca=$MYSQL_TEST_DIR/std_data/cacert.pem --ssl-key=$MYSQL_TEST_DIR/std_data/client-key.pem --ssl-cert=$MYSQL_TEST_DIR/std_data/client-cert.pem test -e "SHOW STATUS LIKE 'Ssl_cipher'"
+ 
+ --echo #
+@@ -22,15 +22,15 @@
+ 
+ --echo # try to connect with '--ssl-ca' option using tilde home directoy
+ --echo # path substitution : should connect
+---replace_result DHE-RSA-AES256-GCM-SHA384 DHE-RSA-AES256-SHA
++--replace_result DHE-RSA-AES256-GCM-SHA384 DHE-RSA-AES256-SHA DHE-RSA-CHACHA20-POLY1305 DHE-RSA-AES256-SHA AES256-GCM-SHA384 DHE-RSA-AES256-SHA
+ --exec $MYSQL --ssl-ca$mysql_test_dir_path/std_data/cacert.pem --ssl-key=$MYSQL_TEST_DIR/std_data/client-key.pem --ssl-cert=$MYSQL_TEST_DIR/std_data/client-cert.pem test -e "SHOW STATUS LIKE 'Ssl_cipher'"
+ 
+ --echo # try to connect with '--ssl-key' option using tilde home directoy
+ --echo # path substitution : should connect
+---replace_result DHE-RSA-AES256-GCM-SHA384 DHE-RSA-AES256-SHA
++--replace_result DHE-RSA-AES256-GCM-SHA384 DHE-RSA-AES256-SHA DHE-RSA-CHACHA20-POLY1305 DHE-RSA-AES256-SHA AES256-GCM-SHA384 DHE-RSA-AES256-SHA
+ --exec $MYSQL --ssl-ca=$MYSQL_TEST_DIR/std_data/cacert.pem --ssl-key$mysql_test_dir_path/std_data/client-key.pem --ssl-cert=$MYSQL_TEST_DIR/std_data/client-cert.pem test -e "SHOW STATUS LIKE 'Ssl_cipher'"
+ 
+ --echo # try to connect with '--ssl-cert' option using tilde home directoy
+ --echo # path substitution : should connect
+---replace_result DHE-RSA-AES256-GCM-SHA384 DHE-RSA-AES256-SHA
++--replace_result DHE-RSA-AES256-GCM-SHA384 DHE-RSA-AES256-SHA DHE-RSA-CHACHA20-POLY1305 DHE-RSA-AES256-SHA AES256-GCM-SHA384 DHE-RSA-AES256-SHA
+ --exec $MYSQL --ssl-ca=$MYSQL_TEST_DIR/std_data/cacert.pem --ssl-key=$MYSQL_TEST_DIR/std_data/client-key.pem --ssl-cert$mysql_test_dir_path/std_data/client-cert.pem test -e "SHOW STATUS LIKE 'Ssl_cipher'"

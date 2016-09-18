@@ -112,7 +112,7 @@
 # Make long macros shorter
 %global sameevr   %{epoch}:%{version}-%{release}
 %global compatver 10.0
-%global bugfixver 26
+%global bugfixver 27
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
@@ -843,6 +843,7 @@ export MTR_BUILD_THREAD=%{__isa_bits}
 %if ! %{check_testsuite}
     --skip-test-list=rh-skipped-tests.list \
 %endif
+    --skip-rpl \
     --suite-timeout=720 --testcase-timeout=30 \
     --mysqld=--binlog-format=mixed --force-restart \
     --shutdown-timeout=60 --max-test-fail=0
@@ -1151,6 +1152,11 @@ fi
 %endif
 
 %changelog
+* Sun Sep 18 2016 Honza Horak <hhorak@redhat.com> - 1:10.0.27-1
+- Rebase to 10.0.27
+- No need to replace cypher names in tests
+- Skip replication test-suite during build
+
 * Tue Aug  9 2016 Jakub Dorňák <jdornak@redhat.com> - 1:10.0.26-1
 - Rebase to 10.0.26
   fixes for CVE-2016-3477 CVE-2016-3521 CVE-2016-3615 CVE-2016-5440

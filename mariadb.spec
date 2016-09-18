@@ -1154,6 +1154,7 @@ fi
 %changelog
 * Sun Sep 18 2016 Honza Horak <hhorak@redhat.com> - 1:10.0.27-1
 - Rebase to 10.0.27
+  fixes for CVE-2016-6662
 - No need to replace cypher names in tests
 - Skip replication test-suite during build
 

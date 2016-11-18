@@ -112,7 +112,7 @@
 # Make long macros shorter
 %global sameevr   %{epoch}:%{version}-%{release}
 %global compatver 10.0
-%global bugfixver 27
+%global bugfixver 28
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
@@ -1152,6 +1152,9 @@ fi
 %endif
 
 %changelog
+* Fri Nov 18 2016 Michal Schorm <mschorm@redhat.com> - 1:10.0.28-1
+- Rebase to 10.0.28
+
 * Sun Sep 18 2016 Honza Horak <hhorak@redhat.com> - 1:10.0.27-1
 - Rebase to 10.0.27
   fixes for CVE-2016-6662

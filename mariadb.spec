@@ -8,7 +8,7 @@
 %{!?runselftest:%global runselftest 1}
 
 # Set this to 1 to see which tests fail
-%global check_testsuite 0
+%global ignore_testsuite_result 0
 
 # In f20+ use unversioned docdirs, otherwise the old versioned one
 %global _pkgdocdirname %{pkg_name}%{!?_pkgdocdir:-%{version}}
@@ -116,7 +116,7 @@
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          1%{?with_debug:.debug}%{?dist}
+Release:          2%{?with_debug:.debug}%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -840,7 +840,7 @@ export MTR_BUILD_THREAD=%{__isa_bits}
   set -e
   cd mysql-test
   perl ./mysql-test-run.pl --force --retry=0 --ssl \
-%if ! %{check_testsuite}
+%if ! %{ignore_testsuite_result}
     --skip-test-list=rh-skipped-tests.list \
 %endif
     --skip-rpl \
@@ -1152,6 +1152,11 @@ fi
 %endif
 
 %changelog
+* Thu Dec 01 2016 Michal Schorm <mschorm@redhat.com> - 1:10.0.28-2
+- Mass tests blacklists update
+  Related: #1096787
+
+
 * Fri Nov 18 2016 Michal Schorm <mschorm@redhat.com> - 1:10.0.28-1
 - Rebase to 10.0.28
 

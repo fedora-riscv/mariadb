@@ -5,7 +5,7 @@
 # Regression tests may take a long time (many cores recommended), skip them by
 # passing --nocheck to rpmbuild or by setting runselftest to 0 if defining
 # --nocheck is not possible (e.g. in koji build)
-%{!?runselftest:%global runselftest 1}
+%{!?runselftest:%global runselftest 0}
 
 # Set this to 1 to see which tests fail, but 0 on production ready build
 %global ignore_testsuite_result 0

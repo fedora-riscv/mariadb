@@ -381,7 +381,7 @@ Requires:         %{name}-errmsg%{?_isa} = %{sameevr}
 Recommends:       %{name}-server-utils%{?_isa} = %{sameevr}
 Requires:         %{_sysconfdir}/my.cnf
 Requires:         %{_sysconfdir}/my.cnf.d
-Requires:         sh-utils
+Requires:         coreutils
 Requires(pre):    /usr/sbin/useradd
 %if %{with init_systemd}
 # We require this to be present for %%{_tmpfilesdir}
@@ -392,7 +392,7 @@ Requires(posttrans): systemd
 %{?systemd_requires: %systemd_requires}
 %endif
 # wsrep requirements
-Requires:         lsof net-tools sh-utils rsync
+Requires:         lsof net-tools coreutils rsync
 %if %{with mysql_names}
 Provides:         mysql-server = %{sameevr}
 Provides:         mysql-server%{?_isa} = %{sameevr}

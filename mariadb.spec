@@ -127,7 +127,7 @@
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          1%{?with_debug:.debug}%{?dist}
+Release:          2%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A community developed branch of MySQL
@@ -1114,7 +1114,6 @@ fi
 %{_bindir}/mysqlimport
 %{_bindir}/mysqlshow
 %{_bindir}/mysqlslap
-%{_bindir}/my_print_defaults
 
 %{_mandir}/man1/msql2mysql.1*
 %{_mandir}/man1/mysql.1*
@@ -1129,7 +1128,6 @@ fi
 %{_mandir}/man1/mysqlimport.1*
 %{_mandir}/man1/mysqlshow.1*
 %{_mandir}/man1/mysqlslap.1*
-%{_mandir}/man1/my_print_defaults.1*
 %endif
 
 %if %{with clibrary}
@@ -1220,6 +1218,7 @@ fi
 %{_bindir}/myisam_ftdump
 %{_bindir}/myisamlog
 %{_bindir}/myisampack
+%{_bindir}/my_print_defaults
 %{_bindir}/mysql_install_db
 %{_bindir}/mysql_secure_installation
 %{_bindir}/mysql_tzinfo_to_sql
@@ -1269,6 +1268,7 @@ fi
 %{_mandir}/man1/myisamchk.1*
 %{_mandir}/man1/myisamlog.1*
 %{_mandir}/man1/myisampack.1*
+%{_mandir}/man1/my_print_defaults.1*
 %{_mandir}/man1/myisam_ftdump.1*
 %{_mandir}/man1/mysqlbug.1*
 %{_mandir}/man1/mysql.server.1*
@@ -1426,6 +1426,11 @@ fi
 %endif
 
 %changelog
+* Thu Mar 29 2018 Michal Schorm <mschorm@redhat.com> - 3:10.1.32-2
+- Move my_print_defaults from client to server to not collide with community-mysql package
+- Support --defaults-group-suffix properly in systemd unit file
+  Resolves: #1485777 #1540109
+
 * Thu Mar 29 2018 Michal Schorm <mschorm@redhat.com> - 3:10.1.32-1
 - Rebase to 10.1.32
 

@@ -3,7 +3,7 @@
 %global pkgnamepatch mariadb
 
 # Regression tests may take a long time (many cores recommended), skip them by
-%{!?runselftest:%global runselftest 1}
+%{!?runselftest:%global runselftest 0}
 
 # Set this to 1 to see which tests fail, but 0 on production ready build
 %global ignore_testsuite_result 0
@@ -818,10 +818,16 @@ rm %{buildroot}%{_sysconfdir}/my.cnf
 # use different config file name for each variant of server
 mv %{buildroot}%{_sysconfdir}/my.cnf.d/server.cnf %{buildroot}%{_sysconfdir}/my.cnf.d/%{pkg_name}-server.cnf
 
+# Rename sysusers and tmpfiles config files, they should be named after the software they belong to
+mv %{buildroot}/usr/lib/sysusers.d/sysusers.conf %{buildroot}/usr/lib/sysusers.d/mariadb.conf
+
 # install systemd unit files and scripts for handling server startup
 %if %{with init_systemd}
 install -D -p -m 644 scripts/mysql.service %{buildroot}%{_unitdir}/%{daemon_name}.service
 install -D -p -m 644 scripts/mysql@.service %{buildroot}%{_unitdir}/%{daemon_name}@.service
+# Remove the upstream version
+rm %{buildroot}/usr/lib/tmpfiles.d/tmpfiles.conf
+# Install downstream version
 install -D -p -m 0644 scripts/mysql.tmpfiles.d %{buildroot}%{_tmpfilesdir}/%{name}.conf
 %if 0%{?mysqld_pid_dir:1}
 %if 0%{?rhel} == 6
@@ -870,10 +876,6 @@ rm %{buildroot}%{_datadir}/%{pkg_name}/mysqld_multi.server
 rm %{buildroot}%{_mandir}/man1/mysql-stress-test.pl.1*
 rm %{buildroot}%{_mandir}/man1/mysql-test-run.pl.1*
 rm %{buildroot}%{_bindir}/mytop
-
-# Rename sysusers and tmpfiles config files, they should be named after the software they belong to
-mv %{buildroot}/usr/lib/sysusers.d/sysusers.conf %{buildroot}/usr/lib/sysusers.d/mariadb.conf
-mv %{buildroot}/usr/lib/tmpfiles.d/tmpfiles.conf %{buildroot}/usr/lib/tmpfiles.d/mariadb.conf
 
 # put logrotate script where it needs to be
 mkdir -p %{buildroot}%{logrotateddir}
@@ -1431,6 +1433,10 @@ fi
 %endif
 
 %changelog
+* Thu Jan 25 2018 Michal Schorm <mschorm@redhat.com> - 3:10.1.30-2
+- Use downstream tmpfiles instead of the upstream one
+  Related: #1538066
+
 * Tue Jan 09 2018 Michal Schorm <mschorm@redhat.com> - 3:10.1.30-1
 - Fix cmake arguments (blocked debug builds)
 - Fix loading of skipped tests files (omitted ppc list)

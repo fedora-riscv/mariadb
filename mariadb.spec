@@ -664,7 +664,8 @@ then
 fi
 %endif # PCRE
 
-
+# Remove python scripts remains from tokudb upstream (those files are not used anyway)
+rm -r storage/tokudb/mysql-test/tokudb/t/*.py
 
 %build
 

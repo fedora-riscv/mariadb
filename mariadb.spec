@@ -123,11 +123,11 @@
 # Make long macros shorter
 %global sameevr   %{epoch}:%{version}-%{release}
 %global compatver 10.1
-%global bugfixver 30
+%global bugfixver 31
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          2.COPR%{?with_debug:.debug}%{?dist}
+Release:          1.COPR%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A community developed branch of MySQL
@@ -177,11 +177,7 @@ Patch37:          %{pkgnamepatch}-notestdb.patch
 # Patches for galera
 Patch40:          %{pkgnamepatch}-galera.cnf.patch
 
-Patch101:         0001-MDEV-10332-support-for-OpenSSL-1.1-and-LibreSSL.patch
-Patch102:         0002-MDEV-10332-support-for-OpenSSL-1.1-and-LibreSSL.patch
-Patch103:         0003-fix-crashes-with-openssl-fips-builds.patch
-Patch104:         0004-cleanup-check_openssl_compatibility.patch
-Patch105:         0005-fix-compilation-with-OpenSSL-1.1.patch
+Patch106:         %{pkgnamepatch}-ssl-11.patch
 
 BuildRequires:    cmake gcc-c++
 BuildRequires:    libaio-devel
@@ -608,12 +604,8 @@ MariaDB is a community developed branch of MySQL.
 %patch37 -p1
 %patch40 -p1
 
-%if 0%{?fedora} >= 26
-%patch101 -p1
-%patch102 -p1
-%patch103 -p1
-%patch104 -p1
-%patch105 -p1
+%if 0%{?fedora} == 26
+%patch106 -p1
 %endif
 
 # workaround for upstream bug #56342
@@ -1434,6 +1426,9 @@ fi
 %endif
 
 %changelog
+* Thu Jan 25 2018 Michal Schorm <mschorm@redhat.com> - 3:10.1.31-1
+- Rebase to 10.1.31
+
 * Thu Jan 25 2018 Michal Schorm <mschorm@redhat.com> - 3:10.1.30-2
 - Use downstream tmpfiles instead of the upstream one
   Related: #1538066

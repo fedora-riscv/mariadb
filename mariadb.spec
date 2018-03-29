@@ -123,7 +123,7 @@
 # Make long macros shorter
 %global sameevr   %{epoch}:%{version}-%{release}
 %global compatver 10.1
-%global bugfixver 31
+%global bugfixver 32
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
@@ -1426,6 +1426,9 @@ fi
 %endif
 
 %changelog
+* Thu Mar 29 2018 Michal Schorm <mschorm@redhat.com> - 3:10.1.32-1
+- Rebase to 10.1.32
+
 * Thu Jan 25 2018 Michal Schorm <mschorm@redhat.com> - 3:10.1.31-1
 - Rebase to 10.1.31
 

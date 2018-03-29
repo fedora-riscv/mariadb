@@ -76,26 +76,6 @@ Subject: [PATCH 5/5] fix compilation with OpenSSL 1.1
 
 
 
-diff -Naurp mariadb-10.1.30_orig/extra/yassl/src/handshake.cpp mariadb-10.1.30_patched/extra/yassl/src/handshake.cpp
---- mariadb-10.1.30_orig/extra/yassl/src/handshake.cpp	2017-12-21 16:48:45.000000000 +0100
-+++ mariadb-10.1.30_patched/extra/yassl/src/handshake.cpp	2018-03-26 16:35:17.584188714 +0200
-@@ -788,6 +788,16 @@ int DoProcessReply(SSL& ssl)
-             needHdr = true;
-         else {
-             buffer >> hdr;
-+            /*
-+              According to RFC 4346 (see "7.4.1.3. Server Hello"), the Server Hello
-+              packet needs to specify the highest supported TLS version, but not
-+              higher than what client requests. YaSSL highest supported version is
-+              TLSv1.1 (=3.2) - if the client requests a higher version, downgrade it
-+              here to 3.2.
-+              See also Appendix E of RFC 5246 (TLS 1.2)
-+            */
-+            if (hdr.version_.major_ == 3 && hdr.version_.minor_ > 2)
-+              hdr.version_.minor_ = 2;
-             ssl.verifyState(hdr);
-         }
- 
 diff -Naurp mariadb-10.1.30_orig/include/ssl_compat.h mariadb-10.1.30_patched/include/ssl_compat.h
 --- mariadb-10.1.30_orig/include/ssl_compat.h	1970-01-01 01:00:00.000000000 +0100
 +++ mariadb-10.1.30_patched/include/ssl_compat.h	2018-03-26 16:35:17.590188595 +0200

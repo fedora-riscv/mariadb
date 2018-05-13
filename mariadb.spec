@@ -123,11 +123,11 @@
 # Make long macros shorter
 %global sameevr   %{epoch}:%{version}-%{release}
 %global compatver 10.1
-%global bugfixver 32
+%global bugfixver 33
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          2%{?with_debug:.debug}%{?dist}
+Release:          1%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A community developed branch of MySQL
@@ -1426,6 +1426,9 @@ fi
 %endif
 
 %changelog
+* Thu May 10 2018 Michal Schorm <mschorm@redhat.com> - 3:10.1.33-1
+- Rebase to 10.1.33
+
 * Thu Mar 29 2018 Michal Schorm <mschorm@redhat.com> - 3:10.1.32-2
 - Move my_print_defaults from client to server to not collide with community-mysql package
 - Support --defaults-group-suffix properly in systemd unit file

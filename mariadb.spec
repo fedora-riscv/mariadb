@@ -1428,6 +1428,11 @@ fi
 %changelog
 * Thu May 10 2018 Michal Schorm <mschorm@redhat.com> - 3:10.1.33-1
 - Rebase to 10.1.33
+- CVEs fixed: #1568964
+  CVE-2018-2755 CVE-2018-2761 CVE-2018-2766 CVE-2018-2771
+  CVE-2018-2773 CVE-2018-2781 CVE-2018-2782 CVE-2018-2784
+  CVE-2018-2787 CVE-2018-2813 CVE-2018-2817 CVE-2018-2818
+  CVE-2018-2819
 
 * Thu Mar 29 2018 Michal Schorm <mschorm@redhat.com> - 3:10.1.32-2
 - Move my_print_defaults from client to server to not collide with community-mysql package

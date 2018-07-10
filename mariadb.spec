@@ -33,14 +33,20 @@
 #   https://mariadb.com/kb/en/library/myrocks-supported-platforms/
 #   RocksB engine is available only for x86_64
 #   RocksDB may be built with jemalloc, if specified in CMake
+# Cassandra engine
+#   Experimental version of the Cassandra storage engine
+#   The tests needs running cassandra server
+#   Do not build it for now
 %if %_arch == x86_64 && 0%{?fedora}
 %bcond_without tokudb
 %bcond_without mroonga
 %bcond_without rocksdb
+%bcond_with cassandra
 %else
 %bcond_with tokudb
 %bcond_with mroonga
 %bcond_with rocksdb
+%bcond_with cassandra
 %endif
 
 # The Open Query GRAPH engine (OQGRAPH) is a computation engine allowing
@@ -139,11 +145,11 @@
 # Make long macros shorter
 %global sameevr   %{epoch}:%{version}-%{release}
 %global compatver 10.2
-%global bugfixver 15
+%global bugfixver 16
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          2.COPR%{?with_debug:.debug}%{?dist}
+Release:          1.COPR%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A community developed branch of MySQL
@@ -187,9 +193,6 @@ Patch9:           %{pkgnamepatch}-ownsetup.patch
 # Patches specific for this mysql package
 #   Patch37: don't create a test DB: https://jira.mariadb.org/browse/MDEV-12645
 Patch37:          %{pkgnamepatch}-notestdb.patch
-
-# Patches for galera
-Patch40:          %{pkgnamepatch}-galera.cnf.patch
 
 BuildRequires:    cmake gcc-c++
 BuildRequires:    multilib-rpm-config
@@ -241,7 +244,6 @@ BuildRequires:    perl(Time::HiRes)
 BuildRequires:    perl(Symbol)
 # for running some openssl tests rhbz#1189180
 BuildRequires:    openssl openssl-devel
-Requires:         openssl
 
 Requires:         bash coreutils grep
 
@@ -414,9 +416,6 @@ Requires:         psmisc
 
 Requires:         coreutils
 Requires(pre):    /usr/sbin/useradd
-# Bison SQL parser
-# WHY?? (testsuite??)
-Requires:         bison
 # We require this to be present for %%{_tmpfilesdir}
 Requires:         systemd
 # Make sure it's there when scriptlets run, too
@@ -489,6 +488,7 @@ For InnoDB, "hot online" backups are possible.
 %package          rocksdb-engine
 Summary:          The RocksDB storage engine for MariaDB
 Requires:         %{name}-server%{?_isa} = %{sameevr}
+Provides:         bundled(rocksdb)
 
 %description      rocksdb-engine
 The RocksDB storage engine is used for high performance servers on SSD drives.
@@ -544,6 +544,16 @@ Requires:         sphinx libsphinxclient
 
 %description      sphinx-engine
 The Sphinx storage engine for MariaDB.
+%endif
+
+%if %{with cassandra}
+%package          cassandra-engine
+Summary:          The Cassandra storage engine for MariaDB - EXPERIMENTAL VERSION
+Requires:         %{name}-server%{?_isa} = %{sameevr}
+BuildRequires:    cassandra thrift-devel
+
+%description      cassandra-engine
+The Cassandra storage engine for MariaDB. EXPERIMENTAL VERSION!
 %endif
 
 
@@ -697,7 +707,6 @@ find . -name "*.jar" -type f -exec rm --verbose -f {} \;
 %patch7 -p1
 %patch9 -p1
 %patch37 -p1
-%patch40 -p1
 
 # workaround for upstream bug #56342
 rm mysql-test/t/ssl_8k_key-master.opt
@@ -829,6 +838,7 @@ export CFLAGS CXXFLAGS
          -DCONC_WITH_SSL=%{?with_clibrary:ON}%{!?with_clibrary:NO} \
          -DWITH_SSL=system \
          -DWITH_ZLIB=system \
+         -DWITH_JEMALLOC=no \
          -DLZ4_LIBS=%{_libdir}/liblz4.so \
          -DWITH_INNODB_LZ4=%{?with_lz4:ON}%{!?with_lz4:OFF} \
          -DPLUGIN_MROONGA=%{?with_mroonga:DYNAMIC}%{!?with_mroonga:NO} \
@@ -838,6 +848,8 @@ export CFLAGS CXXFLAGS
          -DPLUGIN_SPHINX=%{?with_sphinx:DYNAMIC}%{!?with_sphinx:NO} \
          -DPLUGIN_TOKUDB=%{?with_tokudb:DYNAMIC}%{!?with_tokudb:NO} \
          -DPLUGIN_CONNECT=%{?with_connect:DYNAMIC}%{!?with_connect:NO} \
+         -DWITH_CASSANDRA=%{?with_cassandra:TRUE}%{!?with_cassandra:FALSE} \
+         -DPLUGIN_AWS_KEY_MANAGEMENT=NO \
          -DCONNECT_WITH_MONGO=OFF \
          -DCONNECT_WITH_JDBC=OFF \
 %{?with_debug: -DCMAKE_BUILD_TYPE=Debug -DWITH_ASAN=OFF -DWITH_INNODB_EXTRA_DEBUG=ON -DWITH_VALGRIND=ON}
@@ -1331,12 +1343,7 @@ fi
 %{_bindir}/resolve_stack_dump
 %{_bindir}/resolveip
 # wsrep_sst_common should be moved to /usr/share/mariadb: https://jira.mariadb.org/browse/MDEV-14296
-%{_bindir}/wsrep_sst_common
-%{_bindir}/wsrep_sst_mariabackup
-%{_bindir}/wsrep_sst_mysqldump
-%{_bindir}/wsrep_sst_rsync
-%{_bindir}/wsrep_sst_xtrabackup
-%{_bindir}/wsrep_sst_xtrabackup-v2
+%{_bindir}/wsrep_*
 
 %config(noreplace) %{_sysconfdir}/my.cnf.d/%{pkg_name}-server.cnf
 
@@ -1358,6 +1365,7 @@ fi
 %{?with_tokudb:%exclude %{_libdir}/%{pkg_name}/plugin/ha_tokudb.so}
 %{?with_ggsapi:%exclude %{_libdir}/%{pkg_name}/plugin/auth_gssapi.so}
 %{?with_sphinx:%exclude %{_libdir}/%{pkg_name}/plugin/ha_sphinx.so}
+%{?with_cassandra:%exclude %{_libdir}/%{pkg_name}/plugin/ha_cassandra.so}
 %if %{with clibrary}
 %exclude %{_libdir}/%{pkg_name}/plugin/dialog.so
 %exclude %{_libdir}/%{pkg_name}/plugin/mysql_clear_password.so
@@ -1387,11 +1395,7 @@ fi
 %{_mandir}/man1/resolveip.1*
 %{_mandir}/man1/resolve_stack_dump.1*
 %{_mandir}/man8/mysqld.8*
-%{_mandir}/man1/wsrep_sst_common.1*
-%{_mandir}/man1/wsrep_sst_mysqldump.1*
-%{_mandir}/man1/wsrep_sst_rsync.1*
-%{_mandir}/man1/wsrep_sst_xtrabackup.1*
-%{_mandir}/man1/wsrep_sst_xtrabackup-v2.1*
+%{_mandir}/man1/wsrep_*.1*
 
 %{_datadir}/%{pkg_name}/fill_help_tables.sql
 %{_datadir}/%{pkg_name}/install_spider.sql
@@ -1498,6 +1502,12 @@ fi
 %{_libdir}/%{pkg_name}/plugin/ha_connect.so
 %endif
 
+%if %{with cassandra}
+%files cassandra-engine
+%config(noreplace) %{_sysconfdir}/my.cnf.d/cassandra.cnf
+%{_libdir}/%{pkg_name}/plugin/ha_cassandra.so
+%endif
+
 %files server-utils
 # Perl utilities
 %{_bindir}/mysql_convert_table_format
@@ -1569,6 +1579,10 @@ fi
 %endif
 
 %changelog
+* Sat Jun 30 2018 Michal Schorm <mschorm@redhat.com> - 3:10.2.16-1
+- Rebase to 10.2.16
+  MyRocks is now Stable (GA)
+
 * Tue Jun 05 2018 Honza Horak <hhorak@redhat.com> - 3:10.2.15-2
 - Use mysqladmin for checking the socket
 - Jemalloc dependency moved to the TokuDB subpackage.

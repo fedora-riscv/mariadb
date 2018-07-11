@@ -135,7 +135,7 @@
 
 Name:             mariadb
 Version:          10.3.8
-Release:          1%{?with_debug:.debug}%{?dist}
+Release:          1.COPR%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          MariaDB: a very fast and robust SQL database server

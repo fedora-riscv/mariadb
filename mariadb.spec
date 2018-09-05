@@ -142,7 +142,7 @@
 %global sameevr   %{epoch}:%{version}-%{release}
 
 Name:             mariadb
-Version:          10.3.8
+Version:          10.3.9
 Release:          2.COPR%{?with_debug:.debug}%{?dist}
 Epoch:            3
 

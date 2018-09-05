@@ -3,7 +3,7 @@
 %global pkgnamepatch mariadb
 
 # Regression tests may take a long time (many cores recommended), skip them by
-%{!?runselftest:%global runselftest 1}
+%{!?runselftest:%global runselftest 0}
 
 # Set this to 1 to see which tests fail, but 0 on production ready build
 %global ignore_testsuite_result 0
@@ -72,15 +72,23 @@
 %bcond_without client
 %bcond_without common
 %bcond_without errmsg
-%bcond_without bench
 %bcond_without test
 %bcond_without galera
 %bcond_without backup
+%if 0%{?fedora}
+%bcond_without bench
+%else
+%bcond_with bench
+%endif
 
 # When there is already another package that ships /etc/my.cnf,
 # rather include it than ship the file again, since conflicts between
 # those files may create issues
+%if 0%{?fedora} >= 29 || 0%{?rhel} > 7
+%bcond_with config
+%else
 %bcond_without config
+%endif
 
 # For deep debugging we need to build binaries with extra debug info
 %bcond_with    debug
@@ -135,7 +143,7 @@
 
 Name:             mariadb
 Version:          10.3.8
-Release:          1.COPR%{?with_debug:.debug}%{?dist}
+Release:          2.COPR%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          MariaDB: a very fast and robust SQL database server
@@ -262,11 +270,11 @@ Provides: mariadb-galera = %{sameevr}
 %{!?_licensedir:%global license %doc}
 
 %description
-MariaDB is a community developed branch of MySQL.
-MariaDB is a multi-user, multi-threaded SQL database server.
-It is a client/server implementation consisting of a server daemon (mysqld)
-and many different client programs and libraries. The base package
-contains the standard MariaDB/MySQL client programs and generic MySQL files.
+MariaDB is a community developed branch of MySQL - a multi-user, multi-threaded
+SQL database server. It is a client/server implementation consisting of
+a server daemon (mysqld) and many different client programs and libraries.
+The base package contains the standard MariaDB/MySQL client programs and
+generic MySQL files.
 
 
 %if %{with clibrary}
@@ -344,7 +352,7 @@ Requires:         %{name}-common%{?_isa} = %{sameevr}
 Requires:         %{name}-server%{?_isa} = %{sameevr}
 Requires:         galera >= 25.3.3
 Requires(post):   libselinux-utils
-Requires(post):   policycoreutils-python
+Requires(post):   policycoreutils-python-utils
 # wsrep requirements
 Requires:         lsof
 Requires:         rsync
@@ -549,8 +557,7 @@ the only MariaDB sub-package, except test subpackage, that depends on Perl.
 %package          devel
 Summary:          Files for development of MariaDB/MySQL applications
 %{?with_clibrary:Requires:         %{name}-libs%{?_isa} = %{sameevr}}
-# avoid issues with openssl1.0 / openssl1.1 / compat
-Requires:         pkgconfig(openssl)
+Requires:         openssl-devel
 %if %{without clibrary}
 Requires:         mariadb-connector-c-devel >= 3.0
 %endif
@@ -795,7 +802,7 @@ export CFLAGS CXXFLAGS
          -DCONC_WITH_SSL=%{?with_clibrary:ON}%{!?with_clibrary:NO} \
          -DWITH_SSL=system \
          -DWITH_ZLIB=system \
-         -DWITH_JEMALLOC=yes \
+         -DWITH_JEMALLOC=%{?with_tokudb:YES}%{!?with_tokudb:NO} \
          -DLZ4_LIBS=%{_libdir}/liblz4.so \
          -DWITH_INNODB_LZ4=%{?with_lz4:ON}%{!?with_lz4:OFF} \
          -DPLUGIN_MROONGA=%{?with_mroonga:DYNAMIC}%{!?with_mroonga:NO} \
@@ -827,10 +834,10 @@ make -f /usr/share/selinux/devel/Makefile %{name}-server-galera.pp
 %install
 make DESTDIR=%{buildroot} install
 
-# multilib header support
-#for header in mysql/my_config.h mysql/private/config.h; do
-#%multilib_fix_c_header --file %{_includedir}/$header
-#done
+# multilib header support #1625157
+for header in mysql/server/my_config.h mysql/server/private/config.h; do
+%multilib_fix_c_header --file %{_includedir}/$header
+done
 
 ln -s mysql_config.1.gz %{buildroot}%{_mandir}/man1/mariadb_config.1.gz
 
@@ -1021,6 +1028,7 @@ mysqldump,mysqlimport,mysqlshow,mysqlslap}
 rm %{buildroot}%{_mandir}/man1/{msql2mysql,mysql,mysql_find_rows,\
 mysql_plugin,mysql_waitpid,mysqlaccess,mysqladmin,mysqlbinlog,mysqlcheck,\
 mysqldump,mysqlimport,mysqlshow,mysqlslap}.1*
+rm %{buildroot}%{_sysconfdir}/my.cnf.d/mysql-clients.cnf
 %endif
 
 %if %{without tokudb}
@@ -1037,8 +1045,6 @@ mv %{buildroot}%{_sysconfdir}/systemd/system/mariadb.service.d %{buildroot}/usr/
 
 %if %{without config}
 rm %{buildroot}%{_sysconfdir}/my.cnf
-rm %{buildroot}%{_sysconfdir}/my.cnf.d/mysql-clients.cnf
-rm %{buildroot}%{_sysconfdir}/my.cnf.d/enable_encryption.preset
 %endif
 
 %if %{without common}
@@ -1114,7 +1120,7 @@ export MTR_BUILD_THREAD=%{__isa_bits}
     --shutdown-timeout=60 --max-test-fail=5 --big-test \
     --skip-test=spider \
 %if %{ignore_testsuite_result}
-    || :
+    --max-test-fail=9999 || :
 %else
     --skip-test-list=unstable-tests
 %endif
@@ -1126,7 +1132,7 @@ export MTR_BUILD_THREAD=%{__isa_bits}
     --shutdown-timeout=60 --max-test-fail=0 --big-test \
     --skip-ssl --suite=spider,spider/bg \
 %if %{ignore_testsuite_result}
-    || :
+    --max-test-fail=999 || :
 %endif
 )
 
@@ -1207,6 +1213,7 @@ fi
 %{_mandir}/man1/mysqlimport.1*
 %{_mandir}/man1/mysqlshow.1*
 %{_mandir}/man1/mysqlslap.1*
+%config(noreplace) %{_sysconfdir}/my.cnf.d/mysql-clients.cnf
 %endif
 
 %if %{with clibrary}
@@ -1221,8 +1228,6 @@ fi
 # common package because it can be used for client settings too.
 %dir %{_sysconfdir}/my.cnf.d
 %config(noreplace) %{_sysconfdir}/my.cnf
-%config(noreplace) %{_sysconfdir}/my.cnf.d/mysql-clients.cnf
-%config(noreplace) %{_sysconfdir}/my.cnf.d/enable_encryption.preset
 %endif
 
 %if %{with common}
@@ -1304,6 +1309,7 @@ fi
 %{_bindir}/wsrep_*
 
 %config(noreplace) %{_sysconfdir}/my.cnf.d/%{pkg_name}-server.cnf
+%config(noreplace) %{_sysconfdir}/my.cnf.d/enable_encryption.preset
 
 %{_libexecdir}/mysqld
 
@@ -1541,6 +1547,25 @@ fi
 %endif
 
 %changelog
+* Tue Sep 04 2018 Michal Schorm <mschorm@redhat.com> - 3:10.3.9-2
+- Fix parallel installability of x86_64 and i686 devel packages
+
+* Mon Aug 20 2018 Michal Schorm <mschorm@redhat.com> - 3:10.3.9-1
+- Rebase to 10.3.9
+
+* Fri Aug 10 2018 Petr Lautrbach <plautrba@redhat.com> - 3:10.3.8-5
+- Update mariadb-server-galera sub-package to require the correct package with /usr/sbin/semanage
+
+* Wed Jul 25 2018 Honza Horak <hhorak@redhat.com> - 3:10.3.8-4
+- Do not build config on systems where mariadb-connector-c-config exists instead
+
+* Tue Jul 17 2018 Honza Horak <hhorak@redhat.com> - 3:10.3.8-3
+- Move config files mysql-clients.cnf and enable_encryption.preset to correct
+  sub-packages, similar to what upstream does
+
+* Fri Jul 13 2018 Fedora Release Engineering <releng@fedoraproject.org> - 3:10.3.8-2
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_29_Mass_Rebuild
+
 * Tue Jul 03 2018 Michal Schorm <mschorm@redhat.com> - 3:10.3.8-1
 - Rebase to 10.3.8
 - Build TokuDB with jemalloc

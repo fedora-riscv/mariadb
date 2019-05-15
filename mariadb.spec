@@ -11,7 +11,7 @@
 # The last version on which the full testsuite has been run
 # In case of further rebuilds of that version, don't require full testsuite to be run
 # run only "main" suite
-%global last_tested_version 10.2.22
+%global last_tested_version 10.2.24
 # Set to 1 to force run the testsuite even if it was already tested in current version
 %global force_run_testsuite 0
 
@@ -151,7 +151,7 @@
 # Make long macros shorter
 %global sameevr   %{epoch}:%{version}-%{release}
 %global compatver 10.2
-%global bugfixver 22
+%global bugfixver 24
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
@@ -1612,6 +1612,11 @@ fi
 %endif
 
 %changelog
+* Wed May 15 2019 Michal Schorm <mschorm@redhat.com> - 3:10.2.24-1
+- Rebase to 10.2.24
+- CVEs fixed:
+  CVE-2019-2614 CVE-2019-2627 CVE-2019-2628
+
 * Mon Feb 18 2019 Michal Schorm <mschorm@redhat.com> - 3:10.2.22-1
 - Rebase to 10.2.22
 - CVEs fixed:

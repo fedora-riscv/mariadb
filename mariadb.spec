@@ -153,7 +153,7 @@
 
 Name:             mariadb
 Version:          10.3.21
-Release:          3%{?with_debug:.debug}%{?dist}
+Release:          1%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A very fast and robust SQL database server

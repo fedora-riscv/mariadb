@@ -11,7 +11,7 @@
 # The last version on which the full testsuite has been run
 # In case of further rebuilds of that version, don't require full testsuite to be run
 # run only "main" suite
-%global last_tested_version 10.3.20
+%global last_tested_version 10.3.22
 # Set to 1 to force run the testsuite even if it was already tested in current version
 %global force_run_testsuite 0
 
@@ -152,8 +152,8 @@
 %global sameevr   %{epoch}:%{version}-%{release}
 
 Name:             mariadb
-Version:          10.3.21
-Release:          3%{?with_debug:.debug}%{?dist}
+Version:          10.3.22
+Release:          1%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A very fast and robust SQL database server
@@ -1004,6 +1004,9 @@ rm %{buildroot}%{logrotateddir}/mysql
 # Remove AppArmor files
 rm -r %{buildroot}%{_datadir}/%{pkg_name}/policy/apparmor
 
+# Buildroot does not have symlink /lib --> /usr/lib
+mv %{buildroot}/lib/security %{buildroot}%{_libdir}
+
 # Disable plugins
 %if %{with gssapi}
 sed -i 's/^plugin-load-add/#plugin-load-add/' %{buildroot}%{_sysconfdir}/my.cnf.d/auth_gssapi.cnf
@@ -1360,6 +1363,8 @@ fi
 
 %dir %{_libdir}/%{pkg_name}
 %dir %{_libdir}/%{pkg_name}/plugin
+%{_libdir}/security/pam_user_map.so
+%{_sysconfdir}/security/user_map.conf
 %{_libdir}/%{pkg_name}/plugin/*
 %{?with_oqgraph:%exclude %{_libdir}/%{pkg_name}/plugin/ha_oqgraph.so}
 %{?with_connect:%exclude %{_libdir}/%{pkg_name}/plugin/ha_connect.so}
@@ -1582,6 +1587,9 @@ fi
 %endif
 
 %changelog
+* Tue Feb 25 2020 Michal Schorm <mschorm@redhat.com> - 10.3.22-1
+- Rebase to 10.3.22
+
 * Fri Jan 10 2020 Michal Schorm <mschorm@redhat.com> - 10.3.21-1
 - Rebase to 10.3.21
 

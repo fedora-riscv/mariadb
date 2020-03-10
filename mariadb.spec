@@ -153,7 +153,7 @@
 
 Name:             mariadb
 Version:          10.3.22
-Release:          1%{?with_debug:.debug}%{?dist}
+Release:          2%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A very fast and robust SQL database server
@@ -201,8 +201,6 @@ Patch10:          %{pkgnamepatch}-ssl-cipher-tests.patch
 Patch11:          %{pkgnamepatch}-pcdir.patch
 #   Patch13: Fix Spider code on armv7hl; https://jira.mariadb.org/browse/MDEV-18737
 Patch13:          %{pkgnamepatch}-spider_on_armv7hl.patch
-#   Patch14: Remove the '-Werror' flag so the debug build won't crash on random warnings
-Patch14:          %{pkgnamepatch}-debug_build.patch
 # Patch15:  Add option to edit groonga's and groonga-normalizer-mysql install path
 Patch15:          %{pkgnamepatch}-groonga.patch
 
@@ -704,7 +702,6 @@ find . -name "*.jar" -type f -exec rm --verbose -f {} \;
 %patch10 -p1
 %patch11 -p1
 %patch13 -p1
-%patch14 -p1
 %patch15 -p1
 
 # workaround for upstream bug #56342
@@ -781,8 +778,23 @@ rm -r storage/tokudb/mysql-test/tokudb/t/*.py
 
 CFLAGS="$CFLAGS -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE"
 
+%if %{with debug}
 # Override all optimization flags when making a debug build
-%{?with_debug: CFLAGS="$CFLAGS -O0 -g"}
+# -D_FORTIFY_SOURCE requires optimizations enabled. Disable the fortify.
+CFLAGS=`echo "$CFLAGS" | sed -r 's/-D_FORTIFY_SOURCE=[012]/-D_FORTIFY_SOURCE=0/'`
+CFLAGS=`echo "$CFLAGS" | sed -r 's/-O[0123]//'`
+
+CFLAGS="$CFLAGS -O0 -g -D_FORTIFY_SOURCE=0"
+
+# Fixes for Fedora 32 & Rawhide (GCC 10.0):
+%if 0%{?fedora} >= 32
+CFLAGS="$CFLAGS -Wno-error=class-memaccess"
+%ifarch %arm
+CFLAGS="$CFLAGS -Wno-error=shift-count-overflow -Wno-error=maybe-uninitialized"
+%endif # armv7hl
+%endif # f32
+
+%endif # debug
 
 CXXFLAGS="$CFLAGS"
 CPPFLAGS="$CFLAGS"
@@ -1587,6 +1599,9 @@ fi
 %endif
 
 %changelog
+* Mon Mar 09 2020 Michal Schorm <mschorm@redhat.com> - 10.3.22-2
+- Update the fix for building in the debug mode
+
 * Tue Feb 25 2020 Michal Schorm <mschorm@redhat.com> - 10.3.22-1
 - Rebase to 10.3.22
 

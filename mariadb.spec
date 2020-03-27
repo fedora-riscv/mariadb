@@ -237,19 +237,39 @@ BuildRequires:    python3
 # Tests requires time and ps and some perl modules
 BuildRequires:    procps
 BuildRequires:    time
+BuildRequires:    perl(base)
+BuildRequires:    perl(Cwd)
+BuildRequires:    perl(Data::Dumper)
+BuildRequires:    perl(English)
 BuildRequires:    perl(Env)
+BuildRequires:    perl(Errno)
 BuildRequires:    perl(Exporter)
 BuildRequires:    perl(Fcntl)
+BuildRequires:    perl(File::Basename)
+BuildRequires:    perl(File::Copy)
+BuildRequires:    perl(File::Find)
+BuildRequires:    perl(File::Spec)
+BuildRequires:    perl(File::Spec::Functions)
 BuildRequires:    perl(File::Temp)
-BuildRequires:    perl(Data::Dumper)
 BuildRequires:    perl(Getopt::Long)
+BuildRequires:    perl(IO::File)
+BuildRequires:    perl(IO::Handle)
+BuildRequires:    perl(IO::Select)
+BuildRequires:    perl(IO::Socket)
+BuildRequires:    perl(IO::Socket::INET)
 BuildRequires:    perl(IPC::Open3)
+BuildRequires:    perl(lib)
 BuildRequires:    perl(Memoize)
+BuildRequires:    perl(POSIX)
 BuildRequires:    perl(Socket)
+BuildRequires:    perl(strict)
+BuildRequires:    perl(Symbol)
 BuildRequires:    perl(Sys::Hostname)
+BuildRequires:    perl(Term::ANSIColor)
 BuildRequires:    perl(Test::More)
 BuildRequires:    perl(Time::HiRes)
-BuildRequires:    perl(Symbol)
+BuildRequires:    perl(Time::localtime)
+BuildRequires:    perl(warnings)
 # for running some openssl tests rhbz#1189180
 BuildRequires:    openssl openssl-devel
 
@@ -1583,7 +1603,7 @@ fi
 - CVEs fixed:
   CVE-2020-2752 CVE-2020-2812
   CVE-2020-2814 CVE-2020-2760 CVE-2020-13249
-
+- Add perl dependencies needed for tests
 
 * Tue Feb 25 2020 Michal Schorm <mschorm@redhat.com> - 10.3.22-1
 - Rebase to 10.3.22

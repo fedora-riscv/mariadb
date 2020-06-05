@@ -39,7 +39,7 @@
 #   https://mariadb.com/kb/en/library/about-myrocks-for-mariadb/
 #   RocksDB engine is available only for x86_64
 #   RocksDB may be built with jemalloc, if specified in CMake
-%if %_arch == x86_64 && 0%{?fedora}
+%ifarch x86_64 && 0%{?fedora}
 %bcond_without tokudb
 %bcond_without mroonga
 %bcond_without rocksdb
@@ -110,7 +110,7 @@
 %bcond_without unbundled_pcre
 %else
 %bcond_with unbundled_pcre
-%global pcre_bundled_version 8.43
+%global pcre_bundled_version 8.44
 %endif
 
 # Use main python interpretter version
@@ -152,7 +152,7 @@
 %global sameevr   %{epoch}:%{version}-%{release}
 
 Name:             mariadb
-Version:          10.3.22
+Version:          10.3.23
 Release:          1%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
@@ -186,8 +186,6 @@ Source71:         LICENSE.clustercheck
 # https://jira.mariadb.org/browse/MDEV-12646
 Source72:         mariadb-server-galera.te
 
-#   Patch2: Make the python interpretter be configurable
-Patch2:           %{pkgnamepatch}-pythonver.patch
 #   Patch4: Red Hat distributions specific logrotate fix
 #   it would be big unexpected change, if we start shipping it now. Better wait for MariaDB 10.2
 Patch4:           %{pkgnamepatch}-logrotate.patch
@@ -197,12 +195,8 @@ Patch7:           %{pkgnamepatch}-scripts.patch
 Patch9:           %{pkgnamepatch}-ownsetup.patch
 #   Patch10: Fix cipher name in the SSL Cipher name test
 Patch10:          %{pkgnamepatch}-ssl-cipher-tests.patch
-#   Patch11: Use PCDIR CMake option, if configured
-Patch11:          %{pkgnamepatch}-pcdir.patch
 #   Patch13: Fix Spider code on armv7hl; https://jira.mariadb.org/browse/MDEV-18737
 Patch13:          %{pkgnamepatch}-spider_on_armv7hl.patch
-#   Patch14: Remove the '-Werror' flag so the debug build won't crash on random warnings
-Patch14:          %{pkgnamepatch}-debug_build.patch
 # Patch15:  Add option to edit groonga's and groonga-normalizer-mysql install path
 Patch15:          %{pkgnamepatch}-groonga.patch
 
@@ -697,14 +691,11 @@ sources.
 # Remove JAR files that upstream puts into tarball
 find . -name "*.jar" -type f -exec rm --verbose -f {} \;
 
-%patch2 -p1
 %patch4 -p1
 %patch7 -p1
 %patch9 -p1
 %patch10 -p1
-%patch11 -p1
 %patch13 -p1
-%patch14 -p1
 %patch15 -p1
 
 # workaround for upstream bug #56342
@@ -918,9 +909,6 @@ rm scripts/my.cnf
 # use different config file name for each variant of server (mariadb / mysql)
 mv %{buildroot}%{_sysconfdir}/my.cnf.d/server.cnf %{buildroot}%{_sysconfdir}/my.cnf.d/%{pkg_name}-server.cnf
 
-# Rename sysusers and tmpfiles config files, they should be named after the software they belong to
-mv %{buildroot}%{_sysusersdir}/sysusers.conf %{buildroot}%{_sysusersdir}/%{name}.conf
-
 # remove SysV init script and a symlink to that, we use systemd
 rm %{buildroot}%{_sysconfdir}/init.d/mysql
 rm %{buildroot}%{_libexecdir}/rcmysql
@@ -928,7 +916,7 @@ rm %{buildroot}%{_libexecdir}/rcmysql
 install -D -p -m 644 scripts/mysql.service %{buildroot}%{_unitdir}/%{daemon_name}.service
 install -D -p -m 644 scripts/mysql@.service %{buildroot}%{_unitdir}/%{daemon_name}@.service
 # Remove the upstream version
-rm %{buildroot}%{_tmpfilesdir}/tmpfiles.conf
+rm %{buildroot}%{_tmpfilesdir}/mariadb.conf
 # Install downstream version
 install -D -p -m 0644 scripts/mysql.tmpfiles.d %{buildroot}%{_tmpfilesdir}/%{name}.conf
 %if 0%{?mysqld_pid_dir:1}
@@ -1005,7 +993,7 @@ rm %{buildroot}%{logrotateddir}/mysql
 rm -r %{buildroot}%{_datadir}/%{pkg_name}/policy/apparmor
 
 # Buildroot does not have symlink /lib --> /usr/lib
-mv %{buildroot}/lib/security %{buildroot}%{_libdir}
+mv %{buildroot}/%{_lib}/security %{buildroot}%{_libdir}
 
 # Disable plugins
 %if %{with gssapi}
@@ -1070,11 +1058,7 @@ mysqldump,mysqlimport,mysqlshow,mysqlslap}.1*
 rm %{buildroot}%{_sysconfdir}/my.cnf.d/mysql-clients.cnf
 %endif
 
-%if %{without tokudb}
-# because upstream ships manpages for tokudb even on architectures that tokudb doesn't support
-rm %{buildroot}%{_mandir}/man1/tokuftdump.1*
-rm %{buildroot}%{_mandir}/man1/tokuft_logprint.1*
-%else
+%if %{with tokudb}
 %if 0%{?fedora} || 0%{?rhel} > 7
 # Move the upstream file to the correct location
 mkdir -p %{buildroot}%{_unitdir}/mariadb.service.d
@@ -1587,6 +1571,20 @@ fi
 %endif
 
 %changelog
+* Tue Jun 2 2020 Lukas Javorsky <ljavorsk@redhat.com> - 10.3.23-1
+- Rebase to 10.3.23
+- mariadb-pythonver.patch upstreamed:
+    https://github.com/MariaDB/server/pull/1081
+- mariadb-pcdir.patch upstreamed:
+    https://github.com/MariaDB/server/pull/597
+- mariadb-debug_build.patch is no more needed, upstream did the changes:
+    https://github.com/MariaDB/server/commit/31eaa2029f3c2a4f8e5609ce8b87682286238d9a#diff-32766783af7cac683980224d63c59929
+    https://github.com/MariaDB/server/commit/23c6fb3e6231b8939331e2d9f157092f24ed8f4f#diff-78f3162f137407db5240950beb2bcd7c
+- CVEs fixed:
+  CVE-2020-2752 CVE-2020-2812
+  CVE-2020-2814 CVE-2020-2760 CVE-2020-13249
+
+
 * Tue Feb 25 2020 Michal Schorm <mschorm@redhat.com> - 10.3.22-1
 - Rebase to 10.3.22
 

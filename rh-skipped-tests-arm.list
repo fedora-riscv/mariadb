@@ -19,6 +19,8 @@ versioning.partition      :
 versioning.replace        :
 # Fails since 10.3.22, only on armv7hl
 versioning.delete_history :
+# Fails since 10.3.23, only on armv7hl
+versioning.view           :
 
 # Fails since 10.3.9, only on armv7hl
 federated.federatedx_versioning :

@@ -1,5 +1,2 @@
-# Fails from 10.3.17
-innodb.innodb_buffer_pool_resize :
-
-# Fails since 10.3.23 on ppc64le
-oqgraph.social :
+# Fails from 10.3.35
+innodb.innodb_buffer_pool_resize_with_chunks :

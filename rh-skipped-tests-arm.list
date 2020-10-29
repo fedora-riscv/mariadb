@@ -1,3 +1,6 @@
+# Fails since 10.3.25 on aarch64
+encryption.create_or_replace :
+
 # Fails since 10.3.8, only on armv7hl
 versioning.auto_increment :
 versioning.commit_id      :

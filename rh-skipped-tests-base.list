@@ -1,4 +1,4 @@
-# The SSL test are failing correctly. Fro more explanation, see:
+# The SSL test are failing correctly. For more explanation, see:
 # https://jira.mariadb.org/browse/MDEV-8404?focusedCommentId=84275&page=com.atlassian.jira.plugin.system.issuetabpanels%3Acomment-tabpanel#comment-84275
 main.ssl_7937                                : #1399847
 main.ssl_8k_key                              :
@@ -34,3 +34,6 @@ plugins.auth_ed25519                         :
 # Fails on x86_64 and i686 since 10.3.25
 disks.disks                                  :
 disks.disks_notembedded                      :
+
+# Since 10.3.26 produces a warning to the test logfile which causes the test to fail
+plugins.feedback_plugin_load                 :

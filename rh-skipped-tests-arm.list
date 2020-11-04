@@ -30,3 +30,6 @@ federated.federatedx_versioning :
 
 # Fails from 10.3.17 only on armv7hl
 mariabackup.system_versioning   :
+
+# Fail since 10.3.26 only on armv7hl
+versioning.partition_rotation :

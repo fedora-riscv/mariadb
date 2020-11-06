@@ -1,3 +1,8 @@
+# Enable CMake in-source builds
+#   This is is a workaround for the https://fedoraproject.org/wiki/Changes/CMake_to_do_out-of-source_builds
+#   which reverts the CMake behaviour to before F33
+%global __cmake_in_source_build 1
+
 # Prefix that is used for patches
 %global pkg_name %{name}
 %global pkgnamepatch mariadb

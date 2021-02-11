@@ -44,16 +44,22 @@
 #   https://mariadb.com/kb/en/library/about-myrocks-for-mariadb/
 #   RocksDB engine is available only for x86_64
 #   RocksDB may be built with jemalloc, if specified in CMake
+# Columnstore engine
+#   https://mariadb.com/kb/en/about-mariadb-columnstore/
+#   Available only for Intel / AMD  CPUs
+#   https://mariadb.com/kb/en/columnstore-minimum-hardware-specification/
 %ifarch x86_64
 %if 0%{?fedora}
 # TokuDB is deprecated in MariaDB 10.5 and later
 %bcond_with tokudb
 %bcond_without mroonga
 %bcond_without rocksdb
+%bcond_without columnstore
 %else
 %bcond_with tokudb
 %bcond_with mroonga
 %bcond_with rocksdb
+%bcond_with columnstore
 %endif
 %endif
 
@@ -630,6 +636,23 @@ but still have them accessible for reading in MariaDB.
 %endif
 
 
+%if %{with columnstore}
+%package          columnstore-engine
+Summary:          The Columnstore storage engine for MariaDB
+Requires:         %{name}-server%{?_isa} = %{sameevr}
+
+BuildRequires:    curl-devel flex flex-devel snappy-devel readline-devel
+
+%description      columnstore-engine
+MariaDB ColumnStore is a columnar storage engine that utilizes a massively parallel distributed
+data architecture. It's a columnar storage system built by porting InfiniDB 4.6.7 to MariaDB.
+MariaDB ColumnStore is designed for big data scaling to process petabytes of data,
+linear scalability and exceptional performance with real-time response to analytical queries.
+It leverages the I/O benefits of columnar storage, compression, just-in-time projection,
+and horizontal and vertical partitioning to deliver tremendous performance when analyzing large data sets.
+%endif
+
+
 %package          server-utils
 Summary:          Non-essential server utilities for MariaDB/MySQL applications
 Requires:         %{name}-server%{?_isa} = %{sameevr}
@@ -884,6 +907,7 @@ fi
          -DPLUGIN_TOKUDB=%{?with_tokudb:DYNAMIC}%{!?with_tokudb:NO} \
          -DPLUGIN_CONNECT=%{?with_connect:DYNAMIC}%{!?with_connect:NO} \
          -DPLUGIN_S3=%{?with_s3:DYNAMIC}%{!?with_s3:NO} \
+         -DPLUGIN_COLUMNSTORE=%{?with_columnstore:DYNAMIC}%{!?with_columnstore:NO} \
          -DPLUGIN_CLIENT_ED25519=OFF \
          -DPYTHON_SHEBANG=%{python_path} \
          -DPLUGIN_CACHING_SHA2_PASSWORD=%{?with_clibrary:DYNAMIC}%{!?with_clibrary:OFF} \
@@ -1456,6 +1480,9 @@ fi
 %{?with_gssapi:%exclude %{_libdir}/%{pkg_name}/plugin/auth_gssapi.so}
 %{?with_sphinx:%exclude %{_libdir}/%{pkg_name}/plugin/ha_sphinx.so}
 %{?with_s3:%exclude %{_libdir}/%{pkg_name}/plugin/ha_s3.so}
+%{?with_columnstore:%exclude %{_libdir}/%{pkg_name}/plugin/ha_columnstore.so}
+%{?with_columnstore:%exclude %{_libdir}/%{pkg_name}/plugin/libregr_mysql.so}
+%{?with_columnstore:%exclude %{_libdir}/%{pkg_name}/plugin/libudf_mysql.so}
 %if %{with clibrary}
 %exclude %{_libdir}/%{pkg_name}/plugin/dialog.so
 %exclude %{_libdir}/%{pkg_name}/plugin/mysql_clear_password.so
@@ -1614,6 +1641,145 @@ fi
 %{_mandir}/man1/aria_s3_copy.1*
 %config(noreplace) %{_sysconfdir}/my.cnf.d/s3.cnf
 %{_libdir}/%{pkg_name}/plugin/ha_s3.so
+%endif
+
+%if %{with columnstore}
+%files columnstore-engine
+%dir %{_sysconfdir}/columnstore
+%config(noreplace) %{_sysconfdir}/columnstore/*
+%config(noreplace) %{_sysconfdir}/my.cnf.d/columnstore.cnf
+
+%{_bindir}/DDLProc
+%{_bindir}/DMLProc
+%{_bindir}/ExeMgr
+%{_bindir}/MCSInstanceCmds.sh
+%{_bindir}/MCSVolumeCmds.sh
+%{_bindir}/MCSgetCredentials.sh
+%{_bindir}/PrimProc
+%{_bindir}/ProcMgr
+%{_bindir}/ProcMon
+%{_bindir}/ServerMonitor
+%{_bindir}/StorageManager
+%{_bindir}/WriteEngineServer
+%{_bindir}/autoConfigure
+%{_bindir}/bulklogReport.sh
+%{_bindir}/clearShm
+%{_bindir}/cleartablelock
+%{_bindir}/columnstore
+%{_bindir}/columnstore-post-install
+%{_bindir}/columnstore-pre-uninstall
+%{_bindir}/columnstoreClusterTester.sh
+%{_bindir}/columnstoreDBWrite
+%{_bindir}/columnstoreSupport
+%{_bindir}/columnstoreSyslogSetup.sh
+%{_bindir}/columnstore_installer
+%{_bindir}/columnstore_module_installer.sh
+%{_bindir}/columnstore_os_check.sh
+%{_bindir}/columnstore_run.sh
+%{_bindir}/colxml
+%{_bindir}/configReport.sh
+%{_bindir}/configxml.sh
+%{_bindir}/controllernode
+%{_bindir}/cpimport
+%{_bindir}/cpimport.bin
+%{_bindir}/cplogger
+%{_bindir}/dbbuilder
+%{_bindir}/dbmsReport.sh
+%{_bindir}/dbrmctl
+%{_bindir}/ddlcleanup
+%{_bindir}/disable-rep-columnstore.sh
+%{_bindir}/editem
+%{_bindir}/getMySQLpw
+%{_bindir}/hardwareReport.sh
+%{_bindir}/idbmeminfo
+%{_bindir}/load_brm
+%{_bindir}/logReport.sh
+%{_bindir}/mariadb-columnstore-start.sh
+%{_bindir}/mariadb-columnstore-stop.sh
+%{_bindir}/mariadb-command-line.sh
+%{_bindir}/master-rep-columnstore.sh
+%{_bindir}/mcs-loadbrm.py
+%{_bindir}/mcs-savebrm.py
+%{_bindir}/mcs-stop-controllernode.sh
+%{_bindir}/mcsGetConfig
+%{_bindir}/mcsSetConfig
+%{_bindir}/mcs_module_installer.sh
+%{_bindir}/mycnfUpgrade
+%{_bindir}/os_detect.sh
+%{_bindir}/post-mysql-install
+%{_bindir}/post-mysqld-install
+%{_bindir}/postConfigure
+%{_bindir}/quick_installer_multi_server.sh
+%{_bindir}/quick_installer_single_server.sh
+%{_bindir}/remote_command.sh
+%{_bindir}/remote_command_verify.sh
+%{_bindir}/remote_scp_get.sh
+%{_bindir}/remote_scp_put.sh
+%{_bindir}/remotessh.exp
+%{_bindir}/reset_locks
+%{_bindir}/resourceReport.sh
+%{_bindir}/rollback
+%{_bindir}/rsync.sh
+%{_bindir}/save_brm
+%{_bindir}/slave-rep-columnstore.sh
+%{_bindir}/smcat
+%{_bindir}/smls
+%{_bindir}/smput
+%{_bindir}/smrm
+%{_bindir}/startupTests.sh
+%{_bindir}/testS3Connection
+%{_bindir}/viewtablelock
+%{_bindir}/workernode
+
+%{_libdir}/libalarmmanager.so
+%{_libdir}/libbatchloader.so
+%{_libdir}/libbrm.so
+%{_libdir}/libcacheutils.so
+%{_libdir}/libcloudio.so
+%{_libdir}/libcommon.so
+%{_libdir}/libcompress.so
+%{_libdir}/libconfigcpp.so
+%{_libdir}/libdataconvert.so
+%{_libdir}/libddlcleanuputil.so
+%{_libdir}/libddlpackage.so
+%{_libdir}/libddlpackageproc.so
+%{_libdir}/libdmlpackage.so
+%{_libdir}/libdmlpackageproc.so
+%{_libdir}/libexecplan.so
+%{_libdir}/libfuncexp.so
+%{_libdir}/libidbdatafile.so
+%{_libdir}/libjoblist.so
+%{_libdir}/libjoiner.so
+%{_libdir}/liblibmysql_client.so
+%{_libdir}/libloggingcpp.so
+%{_libdir}/libmarias3.so
+%{_libdir}/libmessageqcpp.so
+%{_libdir}/liboamcpp.so
+%{_libdir}/libquerystats.so
+%{_libdir}/libquerytele.so
+%{_libdir}/libregr.so
+%{_libdir}/librowgroup.so
+%{_libdir}/librwlock.so
+%{_libdir}/libstoragemanager.so
+%{_libdir}/libthreadpool.so
+%{_libdir}/libthrift.so
+%{_libdir}/libudfsdk.so
+%{_libdir}/libwindowfunction.so
+%{_libdir}/libwriteengine.so
+%{_libdir}/libwriteengineclient.so
+%{_libdir}/libwriteengineredistribute.so
+
+%dir %{_datadir}/columnstore
+%{_datadir}/columnstore/*
+
+%{_libexecdir}/install_mcs_mysql.sh
+
+%dir %{_sharedstatedir}/columnstore
+%{_sharedstatedir}/columnstore/*
+
+%{_libdir}/%{pkg_name}/plugin/ha_columnstore.so
+%{_libdir}/%{pkg_name}/plugin/libregr_mysql.so
+%{_libdir}/%{pkg_name}/plugin/libudf_mysql.so
 %endif
 
 %files server-utils

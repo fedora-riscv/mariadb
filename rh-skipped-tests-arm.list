@@ -33,3 +33,15 @@ mariabackup.system_versioning   :
 
 # Fail since 10.3.26 only on armv7hl
 versioning.partition_rotation :
+
+# Fails from 10.3.28 only on armv7hl on F33
+#   error "memory exhausted"
+main.execution_constants :
+
+# Fails from 10.3.28 only on armv7hl on F34
+#   error "Table './mysql/user' is marked as crashed and should be repaired"
+main.plugin_innodb :
+main.plugin_auth :
+main.plugin_loaderr :
+main.bootstrap_innodb :
+main.plugin_not_embedded :

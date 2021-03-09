@@ -1623,7 +1623,7 @@ fi
 * Mon Oct 26 2020 Michal Schorm <mschorm@redhat.com> - 10.3.25-1
 - Rebase to 10.3.25
 
-* Tue Jun 2 2020 Lukas Javorsky <ljavorsk@redhat.com> - 10.3.23-1
+* Mon Sep 07 2020 Lukas Javorsky <ljavorsk@redhat.com> - 10.3.23-1
 - Rebase to 10.3.23
 - mariadb-pythonver.patch upstreamed:
     https://github.com/MariaDB/server/pull/1081
@@ -1633,7 +1633,7 @@ fi
   CVE-2020-2752 CVE-2020-2812
   CVE-2020-2814 CVE-2020-2760 CVE-2020-13249
 
-* Thu Mar 26 2020 Jitka Plesnikova <jplesnik@redhat.com> - 10.3.22-4
+* Mon Sep 07 2020 Jitka Plesnikova <jplesnik@redhat.com> - 10.3.22-4
 - Add perl dependencies needed for tests
 
 * Mon Sep 07 2020 Lukas Javorsky <ljavorsk@redhat.com> - 10.3.22-3

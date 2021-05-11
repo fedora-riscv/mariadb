@@ -157,7 +157,7 @@
 %global sameevr   %{epoch}:%{version}-%{release}
 
 Name:             mariadb
-Version:          10.3.28
+Version:          10.3.29
 Release:          1%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
@@ -1435,7 +1435,6 @@ fi
 %{_datadir}/%{pkg_name}/mysql_system_tables.sql
 %{_datadir}/%{pkg_name}/mysql_system_tables_data.sql
 %{_datadir}/%{pkg_name}/mysql_test_data_timezone.sql
-%{_datadir}/%{pkg_name}/mysql_to_mariadb.sql
 %{_datadir}/%{pkg_name}/mysql_performance_tables.sql
 %{_datadir}/%{pkg_name}/mysql_test_db.sql
 %if %{with mroonga}
@@ -1611,6 +1610,9 @@ fi
 %endif
 
 %changelog
+* Tue May 11 2021 Michal Schorm <mschorm@redhat.com> - 10.3.29-1
+- Rebase to 10.3.29
+
 * Mon Mar 08 2021 Michal Schorm <mschorm@redhat.com> - 10.3.28-1
 - Rebase to 10.3.28
 

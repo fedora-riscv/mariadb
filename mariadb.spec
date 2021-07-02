@@ -16,7 +16,7 @@
 # The last version on which the full testsuite has been run
 # In case of further rebuilds of that version, don't require full testsuite to be run
 # run only "main" suite
-%global last_tested_version 10.3.28
+%global last_tested_version 10.3.30
 # Set to 1 to force run the testsuite even if it was already tested in current version
 %global force_run_testsuite 0
 
@@ -157,7 +157,7 @@
 %global sameevr   %{epoch}:%{version}-%{release}
 
 Name:             mariadb
-Version:          10.3.29
+Version:          10.3.30
 Release:          1%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
@@ -1610,6 +1610,9 @@ fi
 %endif
 
 %changelog
+* Fri Jul 02 2021 Michal Schorm <mschorm@redhat.com> - 10.3.30-1
+- Rebase to 10.3.30
+
 * Tue May 11 2021 Michal Schorm <mschorm@redhat.com> - 10.3.29-1
 - Rebase to 10.3.29
 

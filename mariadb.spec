@@ -1388,7 +1388,7 @@ fi
 %dir %{_libdir}/%{pkg_name}
 %dir %{_libdir}/%{pkg_name}/plugin
 %{_libdir}/security/pam_user_map.so
-%{_sysconfdir}/security/user_map.conf
+%config(noreplace) %{_sysconfdir}/security/user_map.conf
 %{_libdir}/%{pkg_name}/plugin/*
 %{?with_oqgraph:%exclude %{_libdir}/%{pkg_name}/plugin/ha_oqgraph.so}
 %{?with_connect:%exclude %{_libdir}/%{pkg_name}/plugin/ha_connect.so}

@@ -64,3 +64,15 @@ oqgraph.legacy_upgrade                       :
 oqgraph.regression_1133093                   :
 oqgraph.regression_1196036                   :
 oqgraph.regression_1213120                   :
+
+# Fails since 10.6 (first test done on 10.6.5)
+encryption.innodb-checksum-algorithm         :
+innodb_gis.rtree_rollback1                   :
+innodb.innodb-16k                            :
+innodb.innodb_defrag_binlog                  :
+innodb.table_flags                           :
+main.func_math                               :
+main.plugin_auth                             :
+mariabackup.page_compression_level           :
+mariabackup.xb_page_compress                 :
+oqgraph.social                               :

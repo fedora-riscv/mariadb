@@ -153,7 +153,7 @@
 %global sameevr   %{epoch}:%{version}-%{release}
 
 Name:             mariadb
-Version:          10.5.13
+Version:          10.6.5
 Release:          1%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
@@ -1478,6 +1478,7 @@ fi
 %{_datadir}/%{pkg_name}/maria_add_gis_sp_bootstrap.sql
 %{_datadir}/%{pkg_name}/mysql_system_tables.sql
 %{_datadir}/%{pkg_name}/mysql_system_tables_data.sql
+%{_datadir}/%{pkg_name}/mysql_sys_schema.sql
 %{_datadir}/%{pkg_name}/mysql_test_data_timezone.sql
 %{_datadir}/%{pkg_name}/mysql_performance_tables.sql
 %{_datadir}/%{pkg_name}/mysql_test_db.sql
@@ -1605,6 +1606,7 @@ fi
 %{_includedir}/*
 %{_datadir}/aclocal/mysql.m4
 %{_libdir}/pkgconfig/*mariadb.pc
+%{_mandir}/man3/*
 %if %{with clibrary}
 %{_libdir}/{libmysqlclient.so.18,libmariadb.so,libmysqlclient.so,libmysqlclient_r.so}
 %{_bindir}/mysql_config*
@@ -1645,6 +1647,9 @@ fi
 %endif
 
 %changelog
+* Fri Dec 03 2021 Michal Schorm <mschorm@redhat.com> - 3:10.6.5-1
+- Rebase to 10.6.5
+
 * Thu Dec 02 2021 Michal Schorm <mschorm@redhat.com> - 3:10.5.13-1
 - Rebase to 10.5.13
 

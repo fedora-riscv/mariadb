@@ -153,7 +153,7 @@
 %global sameevr   %{epoch}:%{version}-%{release}
 
 Name:             mariadb
-Version:          10.6.5
+Version:          10.7.1
 Release:          1%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
@@ -288,6 +288,8 @@ BuildRequires:    perl(Time::localtime)
 BuildRequires:    perl(warnings)
 # for running some openssl tests rhbz#1189180
 BuildRequires:    openssl openssl-devel
+
+BuildRequires:    fmt-devel
 
 %if %{with debug}
 BuildRequires:    valgrind-devel
@@ -1411,6 +1413,9 @@ fi
 %config(noreplace) %{_sysconfdir}/my.cnf.d/enable_encryption.preset
 %config(noreplace) %{_sysconfdir}/my.cnf.d/spider.cnf
 
+%config(noreplace) %{_sysconfdir}/my.cnf.d/provider_lz4.cnf
+%config(noreplace) %{_sysconfdir}/my.cnf.d/provider_lzma.cnf
+
 %{_sbindir}/mysqld
 %{_sbindir}/mariadbd
 %{_libexecdir}/{mysqld,mariadbd}
@@ -1642,6 +1647,9 @@ fi
 %endif
 
 %changelog
+* Mon Dec 06 2021 Michal Schorm <mschorm@redhat.com> - 3:10.7.1-1
+- Rebase to 10.7.1 RC
+
 * Fri Dec 03 2021 Michal Schorm <mschorm@redhat.com> - 3:10.6.5-1
 - Rebase to 10.6.5
 

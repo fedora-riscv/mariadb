@@ -76,3 +76,6 @@ main.plugin_auth                             :
 mariabackup.page_compression_level           :
 mariabackup.xb_page_compress                 :
 oqgraph.social                               :
+
+# Fails since 10.7
+innodb_gis.kill_server                       :

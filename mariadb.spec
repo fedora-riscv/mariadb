@@ -841,11 +841,7 @@ fi
          -DGRN_DATA_DIR=share/%{name}-server/groonga \
          -DGROONGA_NORMALIZER_MYSQL_PROJECT_NAME=%{name}-server/groonga-normalizer-mysql \
          -DENABLED_LOCAL_INFILE=ON \
-         %ifarch %{arm}
-         -DENABLE_DTRACE=OFF \
-         %else
          -DENABLE_DTRACE=ON \
-         %endif
          -DSECURITY_HARDENED=ON \
          -DWITH_WSREP=%{?with_galera:ON}%{!?with_galera:OFF} \
          -DWITH_INNODB_DISALLOW_WRITES=%{?with_galera:ON}%{!?with_galera:OFF} \
@@ -875,10 +871,6 @@ fi
          -DCONNECT_WITH_JDBC=OFF \
 %{?with_debug: -DCMAKE_BUILD_TYPE=Debug -DWITH_ASAN=OFF -DWITH_INNODB_EXTRA_DEBUG=ON -DWITH_VALGRIND=ON}
 
-# The DTRACE option started to fail on the armv7hl architecture.
-# This issue is already beeing discussed in the GCC upstream bugzilla.
-# https://gcc.gnu.org/bugzilla/show_bug.cgi?id=103395
-# Whenever this issue is fixed in the GCC, we can enable the DTRACE for ARM again.
 
 CFLAGS="$CFLAGS -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE"
 # force PIC mode so that we can build libmysqld.so

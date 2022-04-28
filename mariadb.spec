@@ -822,7 +822,7 @@ export CFLAGS CXXFLAGS CPPFLAGS
 
 # The INSTALL_xxx macros have to be specified relative to CMAKE_INSTALL_PREFIX
 # so we can't use %%{_datadir} and so forth here.
-%cmake . \
+%cmake \
          -DBUILD_CONFIG=mysql_release \
          -DFEATURE_SET="community" \
          -DINSTALL_LAYOUT=RPM \

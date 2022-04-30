@@ -153,7 +153,7 @@
 %global sameevr   %{epoch}:%{version}-%{release}
 
 Name:             mariadb
-Version:          10.6.5
+Version:          10.6.7
 Release:          1%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
@@ -214,8 +214,6 @@ Patch11:          %{pkgnamepatch}-pcdir.patch
 #   Picked from the upstream developement branch for MariaDB 10.8.
 #   https://jira.mariadb.org/browse/MDEV-25785
 Patch12:           %{pkgnamepatch}-openssl3.patch
-#   Patch15:  Add option to edit groonga's and groonga-normalizer-mysql install path
-Patch15:          %{pkgnamepatch}-groonga.patch
 
 BuildRequires:    make
 BuildRequires:    cmake gcc-c++
@@ -746,7 +744,6 @@ rm -r storage/rocksdb/
 %if 0%{?fedora} >= 35 || 0%{?rhel} >= 9
 %patch12 -p1
 %endif
-%patch15 -p1
 
 # generate a list of tests that fail, but are not disabled by upstream
 cat %{SOURCE50} | tee -a mysql-test/unstable-tests
@@ -1634,6 +1631,9 @@ fi
 %endif
 
 %changelog
+* Sat Apr 30 2022 Michal Schorm <mschorm@redhat.com> - 3:10.6.7-1
+- Rebase to 10.6.7
+
 * Fri Dec 03 2021 Michal Schorm <mschorm@redhat.com> - 3:10.6.5-1
 - Rebase to 10.6.5
 

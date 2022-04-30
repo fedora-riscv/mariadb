@@ -88,9 +88,9 @@ diff -up mariadb-10.5.12-downstream_modified/include/ssl_compat.h.patch16 mariad
  #define EVP_MD_CTX_init(X) do { memset((X), 0, EVP_MD_CTX_SIZE); EVP_MD_CTX_reset(X); } while(0)
  #undef EVP_CIPHER_CTX_init
 @@ -74,7 +74,6 @@
+ #define DH_set0_pqg(D,P,Q,G)            ((D)->p= (P), (D)->g= (G))
  #endif
  
- #define DH_set0_pqg(D,P,Q,G)            ((D)->p= (P), (D)->g= (G))
 -#define EVP_CIPHER_CTX_buf_noconst(ctx) ((ctx)->buf)
  #define EVP_CIPHER_CTX_encrypting(ctx)  ((ctx)->encrypt)
  #define EVP_CIPHER_CTX_SIZE             sizeof(EVP_CIPHER_CTX)
@@ -376,3 +376,26 @@ diff -up mariadb-10.5.12-downstream_modified/unittest/mysys/aes-t.c.patch16 mari
    DO_TEST_P(MY_AES_ECB, 200, '.', 208, "\xd8\x73\x8e\x3a\xbc\x66\x99\x13\x7f\x90\x23\x52\xee\x97\x6f\x9a");
    DO_TEST_P(MY_AES_ECB, 128, '?', 144, "\x19\x58\x33\x85\x4c\xaa\x7f\x06\xd1\xb2\xec\xd7\xb7\x6a\xa9\x5b");
    DO_TEST_P(MY_AES_CBC, 159, '%', 160, "\x4b\x03\x18\x3d\xf1\xa7\xcd\xa1\x46\xb3\xc6\x8a\x92\xc0\x0f\xc9");
+
+
+
+MariaDB before 10.8 series does not contain the OpenSSL 3 patch on the upstream.
+MariaDB upstream later added the following condition:
+https://github.com/MariaDB/server/commit/c9beef4315
+limiting the OpenSSL that can be used to < 3. and reverted this commit for 10.8 and later:
+https://github.com/MariaDB/server/commit/64e358821e
+
+Since we apply the OpenSSL 3 patch from MariaDB 10.8 series to earlier series, we need to revert this commit
+on those earlier series too.
+
+--- mariadb-10.5.15-downstream_modified/cmake/ssl.cmake	2022-02-22 05:13:17.259097302 +0100
++++ mariadb-10.5.15-downstream_modified/cmake/ssl.cmake_patched	2022-02-23 07:22:20.290082378 +0100
+@@ -118,7 +118,7 @@ MACRO (MYSQL_CHECK_SSL)
+     ENDIF()
+     FIND_PACKAGE(OpenSSL)
+     SET_PACKAGE_PROPERTIES(OpenSSL PROPERTIES TYPE RECOMMENDED)
+-    IF(OPENSSL_FOUND AND OPENSSL_VERSION AND OPENSSL_VERSION VERSION_LESS "3.0.0")
++    IF(OPENSSL_FOUND)
+       SET(OPENSSL_LIBRARY ${OPENSSL_SSL_LIBRARY})
+       INCLUDE(CheckSymbolExists)
+       SET(SSL_SOURCES "")

@@ -32,9 +32,9 @@ Update 02/2021
 * Discussion continues in:
   https://jira.mariadb.org/browse/MDEV-16621
 
---- mariadb-10.5.8/support-files/mysql-log-rotate.sh	2021-02-12 08:37:47.857289694 +0100
-+++ mariadb-10.5.8/support-files/mysql-log-rotate.sh_pacthed	2021-02-12 08:40:26.420372325 +0100
-@@ -3,35 +3,22 @@
+--- mariadb-10.5.13-downstream_modified/support-files/mysql-log-rotate.sh	2022-02-22 04:56:35.571185622 +0100
++++ mariadb-10.5.13-downstream_modified/support-files/mysql-log-rotate.sh_patched	2022-02-22 04:56:15.121003580 +0100
+@@ -3,36 +3,23 @@
  # in the [mysqld] section as follows:
  #
  # [mysqld]
@@ -58,6 +58,7 @@ Update 02/2021
 -        # create 600 mysql mysql
 +@LOG_LOCATION@ {
 +        create 600 mysql mysql
+         su mysql mysql
          notifempty
          daily
          rotate 3

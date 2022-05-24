@@ -153,7 +153,7 @@
 %global sameevr   %{epoch}:%{version}-%{release}
 
 Name:             mariadb
-Version:          10.7.4
+Version:          10.8.3
 Release:          1%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
@@ -207,13 +207,9 @@ Patch7:           %{pkgnamepatch}-scripts.patch
 #   Patch9: pre-configure to comply with guidelines
 Patch9:           %{pkgnamepatch}-ownsetup.patch
 #   Patch10: Fix cipher name in the SSL Cipher name test
-Patch10:          %{pkgnamepatch}-ssl-cipher-tests.patch
+#Patch10:          %{pkgnamepatch}-ssl-cipher-tests.patch
 #   Patch11: Use PCDIR CMake option, if configured
 Patch11:          %{pkgnamepatch}-pcdir.patch
-#   Patch12: OpenSSL 3 patch
-#   Picked from the upstream developement branch for MariaDB 10.8.
-#   https://jira.mariadb.org/browse/MDEV-25785
-Patch12:           %{pkgnamepatch}-openssl3.patch
 
 BuildRequires:    make
 BuildRequires:    cmake gcc-c++
@@ -741,11 +737,8 @@ rm -r storage/rocksdb/
 %patch4 -p1
 %patch7 -p1
 %patch9 -p1
-%patch10 -p1
+#%patch10 -p1
 %patch11 -p1
-%if 0%{?fedora} >= 35 || 0%{?rhel} >= 9
-%patch12 -p1
-%endif
 
 # generate a list of tests that fail, but are not disabled by upstream
 cat %{SOURCE50} | tee -a mysql-test/unstable-tests
@@ -1465,6 +1458,7 @@ fi
 
 %{_mandir}/man1/mysql.server.1*
 
+%{_datadir}/%{pkg_name}/mini-benchmark
 %{_datadir}/%{pkg_name}/fill_help_tables.sql
 %{_datadir}/%{pkg_name}/maria_add_gis_sp.sql
 %{_datadir}/%{pkg_name}/maria_add_gis_sp_bootstrap.sql

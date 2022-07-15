@@ -157,7 +157,7 @@
 %global sameevr   %{epoch}:%{version}-%{release}
 
 Name:             mariadb
-Version:          10.3.34
+Version:          10.3.35
 Release:          1%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
@@ -1607,6 +1607,9 @@ fi
 %endif
 
 %changelog
+* Thu Jun 30 2022 Zuzana Miklankova <zmiklank@redhat.com> - 3:10.3.35-1
+- Rebase to 10.3.35
+
 * Thu Jun 30 2022 Zuzana Miklankova <zmiklank@redhat.com> - 3:10.3.34-1
 - Rebase to 10.3.34
 

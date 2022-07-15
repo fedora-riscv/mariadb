@@ -115,7 +115,7 @@
 %bcond_without unbundled_pcre
 %else
 %bcond_with unbundled_pcre
-%global pcre_bundled_version 8.44
+%global pcre_bundled_version 8.45
 %endif
 
 # Use main python interpretter version
@@ -157,7 +157,7 @@
 %global sameevr   %{epoch}:%{version}-%{release}
 
 Name:             mariadb
-Version:          10.3.31
+Version:          10.3.32
 Release:          1%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
@@ -1610,6 +1610,9 @@ fi
 %endif
 
 %changelog
+* Wed Jan 12 2022 Zuzana Miklankova <zmiklank@redhat.com> - 3:10.3.32-1
+- Rebase to 10.3.32
+
 * Tue Jan 11 2022 Zuzana Miklankova <zmiklank@redhat.com> - 3:10.3.31-1
 - Rebase to 10.3.31
 

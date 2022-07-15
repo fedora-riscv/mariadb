@@ -157,7 +157,7 @@
 %global sameevr   %{epoch}:%{version}-%{release}
 
 Name:             mariadb
-Version:          10.3.32
+Version:          10.3.34
 Release:          1%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
@@ -202,8 +202,6 @@ Patch9:           %{pkgnamepatch}-ownsetup.patch
 Patch10:          %{pkgnamepatch}-ssl-cipher-tests.patch
 #   Patch13: Fix Spider code on armv7hl; https://jira.mariadb.org/browse/MDEV-18737
 Patch13:          %{pkgnamepatch}-spider_on_armv7hl.patch
-# Patch15:  Add option to edit groonga's and groonga-normalizer-mysql install path
-Patch15:          %{pkgnamepatch}-groonga.patch
 
 BuildRequires:    cmake gcc-c++
 BuildRequires:    multilib-rpm-config
@@ -721,7 +719,6 @@ find . -name "*.jar" -type f -exec rm --verbose -f {} \;
 %patch9 -p1
 %patch10 -p1
 %patch13 -p1
-%patch15 -p1
 
 # workaround for upstream bug #56342
 #rm mysql-test/t/ssl_8k_key-master.opt
@@ -1610,6 +1607,9 @@ fi
 %endif
 
 %changelog
+* Thu Jun 30 2022 Zuzana Miklankova <zmiklank@redhat.com> - 3:10.3.34-1
+- Rebase to 10.3.34
+
 * Wed Jan 12 2022 Zuzana Miklankova <zmiklank@redhat.com> - 3:10.3.32-1
 - Rebase to 10.3.32
 

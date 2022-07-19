@@ -153,7 +153,7 @@
 %global sameevr   %{epoch}:%{version}-%{release}
 
 Name:             mariadb
-Version:          10.8.3
+Version:          10.9.1
 Release:          1%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
@@ -1401,6 +1401,8 @@ fi
 %config(noreplace) %{_sysconfdir}/my.cnf.d/provider_lz4.cnf
 %config(noreplace) %{_sysconfdir}/my.cnf.d/provider_lzma.cnf
 
+%config(noreplace) %{_sysconfdir}/my.cnf.d/hashicorp_key_management.cnf
+
 %{_sbindir}/mysqld
 %{_sbindir}/mariadbd
 %{_libexecdir}/{mysqld,mariadbd}
@@ -1633,6 +1635,9 @@ fi
 %endif
 
 %changelog
+* Mon Jul 18 2022 Michal Schorm <mschorm@redhat.com> - 3:10.9.1-1
+- Rebase to 10.9.1
+
 * Mon May 23 2022 Michal Schorm <mschorm@redhat.com> - 3:10.7.4-1
 - Rebase to 10.7.4
 

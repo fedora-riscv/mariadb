@@ -1,3 +1,5 @@
 # Fails since 10.5.2
 perfschema.memory_aggregate_32bit :
 period.overlaps :
+# Fails since 10.9.1
+main.func_json_notembedded :

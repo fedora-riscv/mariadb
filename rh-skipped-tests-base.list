@@ -79,3 +79,8 @@ oqgraph.social                               :
 
 # Fails since 10.7
 innodb_gis.kill_server                       :
+
+# Fails since 10.7.6
+main.information_schema                      :
+main.loadxml                                 :
+main.lock_kill                               :

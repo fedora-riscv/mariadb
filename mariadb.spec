@@ -153,7 +153,7 @@
 %global sameevr   %{epoch}:%{version}-%{release}
 
 Name:             mariadb
-Version:          10.7.6
+Version:          10.7.7
 Release:          1%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
@@ -1629,6 +1629,9 @@ fi
 %endif
 
 %changelog
+* Tue Nov 15 2022 Michal Schorm <mschorm@redhat.com> - 3:10.7.7-1
+- Rebase to 10.7.7
+
 * Sun Oct 23 2022 Michal Schorm <mschorm@redhat.com> - 3:10.7.6-1
 - Rebase to 10.7.6
 - OpenSSL 3 patch upstreamed

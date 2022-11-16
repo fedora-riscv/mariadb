@@ -64,3 +64,8 @@ oqgraph.legacy_upgrade                       :
 oqgraph.regression_1133093                   :
 oqgraph.regression_1196036                   :
 oqgraph.regression_1213120                   :
+
+# Fails on all architectures since 10.5.18
+main.information_schema                      :
+main.loadxml                                 :
+main.lock_kill                               :

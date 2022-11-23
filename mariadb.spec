@@ -153,7 +153,7 @@
 %global sameevr   %{epoch}:%{version}-%{release}
 
 Name:             mariadb
-Version:          10.6.8
+Version:          10.6.11
 Release:          1%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
@@ -206,14 +206,8 @@ Patch4:           %{pkgnamepatch}-logrotate.patch
 Patch7:           %{pkgnamepatch}-scripts.patch
 #   Patch9: pre-configure to comply with guidelines
 Patch9:           %{pkgnamepatch}-ownsetup.patch
-#   Patch10: Fix cipher name in the SSL Cipher name test
-Patch10:          %{pkgnamepatch}-ssl-cipher-tests.patch
 #   Patch11: Use PCDIR CMake option, if configured
 Patch11:          %{pkgnamepatch}-pcdir.patch
-#   Patch12: OpenSSL 3 patch
-#   Picked from the upstream developement branch for MariaDB 10.8.
-#   https://jira.mariadb.org/browse/MDEV-25785
-Patch12:           %{pkgnamepatch}-openssl3.patch
 
 BuildRequires:    make
 BuildRequires:    cmake gcc-c++
@@ -739,11 +733,7 @@ rm -r storage/rocksdb/
 %patch4 -p1
 %patch7 -p1
 %patch9 -p1
-%patch10 -p1
 %patch11 -p1
-%if 0%{?fedora} >= 35 || 0%{?rhel} >= 9
-%patch12 -p1
-%endif
 
 # generate a list of tests that fail, but are not disabled by upstream
 cat %{SOURCE50} | tee -a mysql-test/unstable-tests
@@ -1634,6 +1624,11 @@ fi
 %endif
 
 %changelog
+* Wed Nov 23 2022 Michal Schorm <mschorm@redhat.com> - 3:10.6.11-1
+- Rebase to 10.6.11
+- OpenSSL 3 patch upstreamed
+- ssl_cipher test fixed by upstream
+
 * Mon May 23 2022 Michal Schorm <mschorm@redhat.com> - 3:10.6.8-1
 - Rebase to 10.6.8
 

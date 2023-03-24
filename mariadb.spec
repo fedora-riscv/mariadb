@@ -150,7 +150,7 @@
 
 Name:             mariadb
 Version:          10.5.19
-Release:          1%{?with_debug:.debug}%{?dist}
+Release:          2%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A very fast and robust SQL database server
@@ -884,10 +884,10 @@ CFLAGS="$CFLAGS -fPIC"
 %if %{with debug}
 # Override all optimization flags when making a debug build
 # -D_FORTIFY_SOURCE requires optimizations enabled. Disable the fortify.
-CFLAGS=`echo "$CFLAGS" | sed -r 's/-D_FORTIFY_SOURCE=[012]/-D_FORTIFY_SOURCE=0/'`
+%undefine _fortify_level
 CFLAGS=`echo "$CFLAGS" | sed -r 's/-O[0123]//'`
 
-CFLAGS="$CFLAGS -O0 -g -D_FORTIFY_SOURCE=0"
+CFLAGS="$CFLAGS -O0 -g"
 
 # Fixes for Fedora 32 & Rawhide (GCC 10.0):
 %if 0%{?fedora} >= 32
@@ -1648,6 +1648,9 @@ fi
 %endif
 
 %changelog
+* Fri Apr 28 2023 Siddhesh Poyarekar <siddhesh@redhat.com> - 3:10.5.19-2
+- Use _fortify_level to disable fortification in debug builds.
+
 * Fri Apr 28 2023 Michal Schorm <mschorm@redhat.com> - 3:10.5.19-1
 - Rebase to 10.5.19
 

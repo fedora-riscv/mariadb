@@ -1,0 +1,21 @@
+rocksdb: Define _GNU_SOURCE during fallocate CMake probe
+
+The glibc headers declare fallocate only if _GNU_SOURCE is defined.
+Upstream rocksdb does not need this because the probe is run with the
+C++ compiler, and current g++ versions define _GNU_SOURCE
+automatically.
+
+Submitted upstream: <https://github.com/MariaDB/server/pull/2593>
+
+
+diff -ur mariadb-10.5.18-downstream_modified.orig/storage/rocksdb/build_rocksdb.cmake mariadb-10.5.18-downstream_modified/storage/rocksdb/build_rocksdb.cmake
+--- mariadb-10.5.18-downstream_modified.orig/storage/rocksdb/build_rocksdb.cmake	2022-11-02 13:37:22.000000000 +0100
++++ mariadb-10.5.18-downstream_modified/storage/rocksdb/build_rocksdb.cmake	2023-04-11 09:42:17.295837813 +0200
+@@ -138,6 +138,7 @@
+ if(WITH_FALLOCATE AND UNIX)
+   include(CheckCSourceCompiles)
+   CHECK_C_SOURCE_COMPILES("
++#define _GNU_SOURCE
+ #include <fcntl.h>
+ #include <linux/falloc.h>
+ int main() {

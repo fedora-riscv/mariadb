@@ -735,19 +735,19 @@ rm -r storage/rocksdb/
 
 
 
-%patch4 -p1
-%patch7 -p1
-%patch9 -p1
+%patch -P4 -p1
+%patch -P7 -p1
+%patch -P9 -p1
 # The test in Patch 10 has been recently updated by upstream
 # and the test was disabled in the testuite run
 #   main.ssl_cipher     [ disabled ]  MDEV-17184 - Failures with OpenSSL 1.1.1
 # Keeping the patch commented out, need to revisit
 #  once the test is re-enabled by upstream  in some future release
-#%patch10 -p1
-%patch11 -p1
+#%patch -P10 -p1
+%patch -P11 -p1
 %if %{with rocksdb}
-%patch12 -p1 -d storage/rocksdb/rocksdb/
-%patch13 -p1
+%patch -P12 -p1 -d storage/rocksdb/rocksdb/
+%patch -P13 -p1
 %endif
 
 # generate a list of tests that fail, but are not disabled by upstream

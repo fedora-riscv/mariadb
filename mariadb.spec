@@ -150,7 +150,7 @@
 
 Name:             mariadb
 Version:          10.5.19
-Release:          2%{?with_debug:.debug}%{?dist}
+Release:          2%{?with_debug:.debug}.rv64%{?dist}
 Epoch:            3
 
 Summary:          A very fast and robust SQL database server
@@ -934,6 +934,11 @@ install -p -m 0755 %{_vpath_builddir}/scripts/mysql_config_multilib %{buildroot}
 ln -s mysql_config.1 %{buildroot}%{_mandir}/man1/mysql_config-%{__isa_bits}.1
 fi
 
+%ifarch riscv64
+mv -f %{buildroot}%{_prefix}/lib/pkgconfig/* %{buildroot}%{_libdir}/pkgconfig/
+rmdir %{buildroot}%{_prefix}/lib/pkgconfig
+%endif
+
 %if %{without clibrary}
 # Client part should be included in package 'mariadb-connector-c'
 rm %{buildroot}%{_libdir}/pkgconfig/libmariadb.pc
@@ -1648,6 +1653,9 @@ fi
 %endif
 
 %changelog
+* Mon May 01 2023 Liu Yang <Yang.Liu.sn@gmail.com> - 3:10.5.19-2.rv64
+- Fix pkgconfig dir path for riscv64.
+
 * Fri Apr 28 2023 Siddhesh Poyarekar <siddhesh@redhat.com> - 3:10.5.19-2
 - Use _fortify_level to disable fortification in debug builds.
 

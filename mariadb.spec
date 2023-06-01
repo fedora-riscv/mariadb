@@ -109,7 +109,7 @@
 %bcond_without unbundled_pcre
 %else
 %bcond_with unbundled_pcre
-%global pcre_bundled_version 10.40
+%global pcre_bundled_version 10.42
 %endif
 
 # Use main python interpretter version
@@ -772,7 +772,7 @@ sed 's/mariadb-server-galera/%{name}-server-galera/' %{SOURCE72} > selinux/%{nam
 
 
 # Get version of PCRE, that upstream use
-pcre_version=`grep -e "https://github.com/PhilipHazel/pcre2/releases/download" cmake/pcre.cmake | sed -r "s;.*pcre2-([[:digit:]]+\.[[:digit:]]+).*;\1;" `
+pcre_version=`grep -e "https://github.com/PCRE2Project/pcre2/releases/download" cmake/pcre.cmake | sed -r "s;.*pcre2-([[:digit:]]+\.[[:digit:]]+).*;\1;" `
 
 # Check if the PCRE version in macro 'pcre_bundled_version', used in Provides: bundled(...), is the same version as upstream actually bundles
 %if %{without unbundled_pcre}

@@ -1243,7 +1243,7 @@ export MTR_BUILD_THREAD=$(( $(date +%s) % 1100 ))
       --skip-test-list=unstable-tests
     %endif
     # Second run for the SPIDER suites that fail with SCA (ssl self signed certificate)
-    perl ./mysql-test-run.pl $common_testsuite_arguments --skip-ssl --big-test --mem --suite=spider,spider/bg,spider/bugfix,spider/handler \
+    perl ./mysql-test-run.pl $common_testsuite_arguments --skip-ssl --big-test --suite=spider,spider/bg,spider/bugfix,spider/handler \
     %if %{ignore_testsuite_result}
       --max-test-fail=999 || :
     %endif

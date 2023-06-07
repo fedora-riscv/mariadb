@@ -71,17 +71,18 @@ main.loadxml                                 :
 main.lock_kill                               :
 
 # Fails since 10.5.20
-innodb.innodb_bug51920			     :
+innodb.innodb_bug51920			         :
+innodb.row_size_error_log_warnings_3     :
 binlog_encryption.rpl_cant_read_event_incident :
-spider/bg.spider_fixes			     :
-spider/bugfix.mdev_29904		     :
+bg.spider_fixes			                 : 
+bugfix.mdev_29904		                 : "[Warning] mariadbd: Can't get hardware address with error 0"
 sys_vars.completion_type_func		     :
-rpl.rpl_report_port			     :
-rpl.rpl_reset_slave_fail		     :
-rpl.rpl_xa_survive_disconnect_lsu_off	     :
-rpl.rpl_heartbeat_basic			     :
+rpl.rpl_report_port			             :
+rpl.rpl_reset_slave_fail		         :
+rpl.rpl_xa_survive_disconnect_lsu_off	 :
+rpl.rpl_heartbeat_basic			         :
 rpl.rpl_xa_survive_disconnect		     :
-rpl.rpl_err_ignoredtable		     :
+rpl.rpl_err_ignoredtable		         :
 rpl.rpl_row_img_sequence_full		     :
 rpl.rpl_row_img_sequence_min		     :
 rpl.rpl_row_img_sequence_noblob		     :

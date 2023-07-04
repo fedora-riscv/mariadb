@@ -130,7 +130,7 @@
 %global sameevr   %{epoch}:%{version}-%{release}
 
 Name:             mariadb
-Version:          10.7.8
+Version:          10.8.8
 Release:          1%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
@@ -1436,6 +1436,7 @@ fi
 
 %{_mandir}/man1/mysql.server.1*
 
+%{_datadir}/%{pkg_name}/mini-benchmark
 %{_datadir}/%{pkg_name}/fill_help_tables.sql
 %{_datadir}/%{pkg_name}/maria_add_gis_sp.sql
 %{_datadir}/%{pkg_name}/maria_add_gis_sp_bootstrap.sql
@@ -1611,6 +1612,9 @@ fi
 %endif
 
 %changelog
+* Thu Jan 25 2024 Michal Schorm <mschorm@redhat.com> - 3:10.8.8-1
+- Rebase to 10.8.8
+
 * Thu Jan 25 2024 Michal Schorm <mschorm@redhat.com> - 3:10.7.8-1
 - Rebase to 10.7.8
 

@@ -130,7 +130,7 @@
 %global sameevr   %{epoch}:%{version}-%{release}
 
 Name:             mariadb
-Version:          10.6.16
+Version:          10.7.8
 Release:          1%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
@@ -255,6 +255,8 @@ BuildRequires:    perl(Time::localtime)
 BuildRequires:    perl(warnings)
 # for running some openssl tests rhbz#1189180
 BuildRequires:    openssl openssl-devel
+
+BuildRequires:    fmt-devel
 
 Requires:         bash coreutils grep
 
@@ -788,6 +790,7 @@ fi
          -DCONC_WITH_SSL=%{?with_clibrary:ON}%{!?with_clibrary:NO} \
          -DWITH_SSL=system \
          -DWITH_ZLIB=system \
+         -DWITH_LIBFMT=system \
          -DLZ4_LIBS=%{?with_lz4:/usr/%{_lib}/liblz4.so}%{!?with_lz4:} \
          -DWITH_INNODB_LZ4=%{?with_lz4:ON}%{!?with_lz4:OFF} \
          -DWITH_ROCKSDB_LZ4=%{?with_lz4:ON}%{!?with_lz4:OFF} \
@@ -806,6 +809,7 @@ fi
          -DPLUGIN_AWS_KEY_MANAGEMENT=NO \
          -DCONNECT_WITH_MONGO=OFF \
          -DCONNECT_WITH_JDBC=OFF \
+         -DPLUGIN_PROVIDER_LZMA=NO \
 %{?with_debug: -DCMAKE_BUILD_TYPE=Debug -DWITH_ASAN=OFF -DWITH_INNODB_EXTRA_DEBUG=ON -DWITH_VALGRIND=ON}
 
 # The -DSECURITY_HARDENED is used to force a set of compilation flags for hardening
@@ -1372,6 +1376,9 @@ fi
 %config(noreplace) %{_sysconfdir}/my.cnf.d/enable_encryption.preset
 %config(noreplace) %{_sysconfdir}/my.cnf.d/spider.cnf
 
+%config(noreplace) %{_sysconfdir}/my.cnf.d/provider_lz4.cnf
+#%config(noreplace) %{_sysconfdir}/my.cnf.d/provider_lzma.cnf
+
 %{_sbindir}/mysqld
 %{_sbindir}/mariadbd
 %{_libexecdir}/{mysqld,mariadbd}
@@ -1604,6 +1611,9 @@ fi
 %endif
 
 %changelog
+* Thu Jan 25 2024 Michal Schorm <mschorm@redhat.com> - 3:10.7.8-1
+- Rebase to 10.7.8
+
 * Thu Jan 25 2024 Michal Schorm <mschorm@redhat.com> - 3:10.6.16-1
 - Rebase to 10.6.16
 

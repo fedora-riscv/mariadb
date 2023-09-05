@@ -544,6 +544,11 @@ Requires:         %{name}-server%{?_isa} = %{sameevr}
 BuildRequires:    cracklib-dicts cracklib-devel
 Requires:         cracklib-dicts
 
+BuildRequires:    selinux-policy-devel
+Requires(post):   (libselinux-utils if selinux-policy-targeted)
+Requires(post):   (policycoreutils if selinux-policy-targeted)
+Requires(post):   (policycoreutils-python-utils if selinux-policy-targeted)
+
 %description      cracklib-password-check
 CrackLib is a password strength checking library. It is installed by default
 in many Linux distributions and is invoked automatically (by pam_cracklib.so)
@@ -989,6 +994,12 @@ echo "d %{pidfiledir} 0755 mysql mysql -" >>%{buildroot}%{_tmpfilesdir}/%{name}.
 install -p -m 644 -D selinux/%{name}-server-galera.pp %{buildroot}%{_datadir}/selinux/packages/%{name}/%{name}-server-galera.pp
 %endif
 
+# Install additional cracklib selinux policy
+%if %{with cracklib}
+mv %{buildroot}%{_datadir}/mariadb/policy/selinux/mariadb-plugin-cracklib-password-check.pp %{buildroot}%{_datadir}/selinux/packages/targeted/%{name}-plugin-cracklib-password-check.pp
+rm %{buildroot}%{_datadir}/mariadb/policy/selinux/mariadb-plugin-cracklib-password-check.te
+%endif
+
 %if %{with test}
 # mysql-test includes one executable that doesn't belong under /usr/share, so move it and provide a symlink
 mv %{buildroot}%{_datadir}/mysql-test/lib/My/SafeProcess/my_safe_process %{buildroot}%{_bindir}
@@ -1284,6 +1295,16 @@ semanage port -a -t mysqld_port_t -p tcp 4444 >/dev/null 2>&1 || :
 semodule -i %{_datadir}/selinux/packages/%{name}/%{name}-server-galera.pp >/dev/null 2>&1 || :
 %endif
 
+%if %{with cracklib}
+%post cracklib-password-check
+%selinux_modules_install -s "targeted" %{_datadir}/selinux/packages/targeted/%{name}-plugin-cracklib-password-check.pp
+
+%postun cracklib-password-check
+if [ $1 -eq 0 ]; then
+    %selinux_modules_uninstall -s "targeted" %{name}-plugin-cracklib-password-check
+fi
+%endif
+
 %post server
 %systemd_post %{daemon_name}.service
 
@@ -1523,6 +1544,7 @@ fi
 %files cracklib-password-check
 %config(noreplace) %{_sysconfdir}/my.cnf.d/cracklib_password_check.cnf
 %{_libdir}/%{pkg_name}/plugin/cracklib_password_check.so
+%{_datadir}/selinux/packages/targeted/%{name}-plugin-cracklib-password-check.pp
 %endif
 
 %if %{with backup}

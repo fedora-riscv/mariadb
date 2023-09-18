@@ -447,7 +447,10 @@ Requires:         %{_sysconfdir}/my.cnf.d
 # Additional SELinux rules (common for MariaDB & MySQL) shipped in a separate package
 # For cases, where we want to fix a SELinux issues in MariaDB sooner than patched selinux-policy-targeted package is released
 %if %require_mysql_selinux
+# The *-selinux package should only be required on SELinux enabled systems. Therefore the following rich dependency syntax should be used:
 Requires:         (mysql-selinux if selinux-policy-targeted)
+# This ensures that the *-selinux package and all its dependencies are not pulled into containers and other systems that do not use SELinux.
+# https://fedoraproject.org/wiki/SELinux/IndependentPolicy#Adding_dependency_to_the_spec_file_of_corresponding_package
 %endif
 
 # for fuser in mysql-check-socket

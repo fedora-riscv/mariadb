@@ -397,8 +397,10 @@ Summary:          The configuration files and scripts for galera replication
 Requires:         %{name}-common%{?_isa} = %{sameevr}
 Requires:         %{name}-server%{?_isa} = %{sameevr}
 Requires:         galera >= 26.4.3
-Requires(post):   libselinux-utils
-Requires(post):   policycoreutils-python-utils
+BuildRequires:    selinux-policy-devel
+Requires(post):   (libselinux-utils if selinux-policy-targeted)
+Requires(post):   (policycoreutils if selinux-policy-targeted)
+Requires(post):   (policycoreutils-python-utils if selinux-policy-targeted)
 # wsrep requirements
 Requires:         lsof
 # Default wsrep_sst_method
@@ -991,7 +993,7 @@ echo "d %{pidfiledir} 0755 mysql mysql -" >>%{buildroot}%{_tmpfilesdir}/%{name}.
 
 # install additional galera selinux policy
 %if %{with galera}
-install -p -m 644 -D selinux/%{name}-server-galera.pp %{buildroot}%{_datadir}/selinux/packages/%{name}/%{name}-server-galera.pp
+install -p -m 644 -D selinux/%{name}-server-galera.pp %{buildroot}%{_datadir}/selinux/packages/targeted/%{name}-server-galera.pp
 %endif
 
 # Install additional cracklib selinux policy
@@ -1291,21 +1293,31 @@ export MTR_BUILD_THREAD=$(( $(date +%s) % 1100 ))
 
 %if %{with galera}
 %post server-galera
-# Allow ports needed for the replication:
-# https://mariadb.com/kb/en/library/configuring-mariadb-galera-cluster/#network-ports
-#   Galera Replication Port
-semanage port -a -t mysqld_port_t -p tcp 4567 >/dev/null 2>&1 || :
-semanage port -a -t mysqld_port_t -p udp 4567 >/dev/null 2>&1 || :
-#   IST Port
-semanage port -a -t mysqld_port_t -p tcp 4568 >/dev/null 2>&1 || :
-#   SST Port
-semanage port -a -t mysqld_port_t -p tcp 4444 >/dev/null 2>&1 || :
+%selinux_modules_install -s "targeted" %{_datadir}/selinux/packages/targeted/%{name}-server-galera.pp
 
-semodule -i %{_datadir}/selinux/packages/%{name}/%{name}-server-galera.pp >/dev/null 2>&1 || :
+# Allow ports needed for the replication:
+# https://fedoraproject.org/wiki/SELinux/IndependentPolicy#Port_Labeling
+if [ $1 -eq 1 ]; then
+  # https://mariadb.com/kb/en/library/configuring-mariadb-galera-cluster/#network-ports
+  #   Galera Replication Port
+  semanage port -a -t mysqld_port_t -p tcp 4567 >/dev/null 2>&1 || :
+  semanage port -a -t mysqld_port_t -p udp 4567 >/dev/null 2>&1 || :
+  #   IST Port
+  semanage port -a -t mysqld_port_t -p tcp 4568 >/dev/null 2>&1 || :
+  #   SST Port
+  semanage port -a -t mysqld_port_t -p tcp 4444 >/dev/null 2>&1 || :
+fi
 
 %postun server-galera
 if [ $1 -eq 0 ]; then
-    semodule -r %{name}-server-galera 2>/dev/null || :
+    %selinux_modules_uninstall -s "targeted" %{name}-server-galera
+
+    # Delete port labeling when the package is removed
+    # https://fedoraproject.org/wiki/SELinux/IndependentPolicy#Port_Labeling
+    semanage port -d -t mysqld_port_t -p tcp 4567 >/dev/null 2>&1 || :
+    semanage port -d -t mysqld_port_t -p udp 4567 >/dev/null 2>&1 || :
+    semanage port -d -t mysqld_port_t -p tcp 4568 >/dev/null 2>&1 || :
+    semanage port -d -t mysqld_port_t -p tcp 4444 >/dev/null 2>&1 || :
 fi
 %endif
 
@@ -1402,7 +1414,7 @@ fi
 %{_bindir}/galera_recovery
 %config(noreplace) %{_sysconfdir}/my.cnf.d/galera.cnf
 %attr(0640,root,root) %ghost %config(noreplace) %{_sysconfdir}/sysconfig/clustercheck
-%{_datadir}/selinux/packages/%{name}/%{name}-server-galera.pp
+%{_datadir}/selinux/packages/targeted/%{name}-server-galera.pp
 %endif
 
 %files server

@@ -1280,6 +1280,15 @@ export MTR_BUILD_THREAD=$(( $(date +%s) % 1100 ))
 /usr/sbin/useradd -M -N -g mysql -o -r -d %{mysqluserhome} -s /sbin/nologin \
   -c "MySQL Server" -u 27 mysql >/dev/null 2>&1 || :
 
+%post server
+%systemd_post %{daemon_name}.service
+
+%preun server
+%systemd_preun %{daemon_name}.service
+
+%postun server
+%systemd_postun_with_restart %{daemon_name}.service
+
 %if %{with galera}
 %post server-galera
 # Allow ports needed for the replication:
@@ -1293,6 +1302,11 @@ semanage port -a -t mysqld_port_t -p tcp 4568 >/dev/null 2>&1 || :
 semanage port -a -t mysqld_port_t -p tcp 4444 >/dev/null 2>&1 || :
 
 semodule -i %{_datadir}/selinux/packages/%{name}/%{name}-server-galera.pp >/dev/null 2>&1 || :
+
+%postun server-galera
+if [ $1 -eq 0 ]; then
+    semodule -r %{name}-server-galera 2>/dev/null || :
+fi
 %endif
 
 %if %{with cracklib}
@@ -1304,22 +1318,6 @@ if [ $1 -eq 0 ]; then
     %selinux_modules_uninstall -s "targeted" %{name}-plugin-cracklib-password-check
 fi
 %endif
-
-%post server
-%systemd_post %{daemon_name}.service
-
-%preun server
-%systemd_preun %{daemon_name}.service
-
-%if %{with galera}
-%postun server-galera
-if [ $1 -eq 0 ]; then
-    semodule -r %{name}-server-galera 2>/dev/null || :
-fi
-%endif
-
-%postun server
-%systemd_postun_with_restart %{daemon_name}.service
 
 
 

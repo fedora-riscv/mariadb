@@ -154,7 +154,7 @@
 %global sameevr   %{epoch}:%{version}-%{release}
 
 Name:             mariadb
-Version:          10.5.22
+Version:          10.5.23
 Release:          1%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
@@ -1685,6 +1685,9 @@ fi
 %endif
 
 %changelog
+* Thu Nov 16 2023 Michal Schorm <mschorm@redhat.com> - 3:10.5.23-1
+- Rebase to 10.5.23
+
 * Mon Sep 04 2023 Michal Schorm <mschorm@redhat.com> - 3:10.5.22-1
 - Rebase to 10.5.22
 

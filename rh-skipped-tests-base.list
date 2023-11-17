@@ -28,30 +28,14 @@ perfschema.socket_summary_by_event_name_func :
 # Fails since 10.1.12
 innodb.innodb_defrag_binlog                  :
 
-# Fails everywhere since 10.2.15
-main.userstat				     :
-
 # Fails everywhere since 10.4.11
-main.events_bugs                             :
 sys_vars.tcp_nodelay                         :
-
-# Fails on i686
-encryption.innodb-redo-badkey                :
-
-# Fails since 10.5.2
-main.mysqld--help2                           :
-disks.disks                                  :
-disks.disks_notembedded                      :
 
 # Fails since 10.5.3
 main.mysqld--help-aria                       :
 
 # Fails since 10.5.4
 main.ssl_system_ca                           :
-
-# Fails since 10.5.7
-innodb.innodb_wl6326_big                     :
-plugins.feedback_plugin_load                 :
 
 # Fails on all architectures since 10.5.13
 oqgraph.regression_mdev6345                  :
@@ -66,17 +50,12 @@ oqgraph.regression_1196036                   :
 oqgraph.regression_1213120                   :
 
 # Fails on all architectures since 10.5.18
-main.information_schema                      :
 main.loadxml                                 :
 main.lock_kill                               :
 
 # Fails since 10.5.20
 innodb.innodb_bug51920			         :
-innodb.row_size_error_log_warnings_3     :
 binlog_encryption.rpl_cant_read_event_incident :
-bg.spider_fixes			                 : 
-bugfix.mdev_29904		                 : "[Warning] mariadbd: Can't get hardware address with error 0"
-sys_vars.completion_type_func		     :
 rpl.rpl_report_port			             :
 rpl.rpl_reset_slave_fail		         :
 rpl.rpl_xa_survive_disconnect_lsu_off	 :
@@ -89,5 +68,9 @@ rpl.rpl_row_img_sequence_noblob		     :
 rpl.rpl_xa_empty_transaction		     :
 rpl.rpl_slave_shutdown_mdev20821	     :
 
-# Unstable to 10.5.22
+# Unstable since 10.5.22:
 main.init_connect                        :
+
+# Fails exclusively on F37
+plugins.feedback_plugin_load             :
+disks.disks                              :

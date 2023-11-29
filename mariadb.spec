@@ -100,8 +100,6 @@
 %global pcre_bundled_version 10.42
 %endif
 
-%global python_path      /usr/bin/python3
-
 # Include systemd files
 %global daemon_name      %{pkg_name}
 %global daemon_no_prefix %{pkg_name}
@@ -837,7 +835,6 @@ fi
          -DPLUGIN_AUTH_PAM_V1=%{?with_pam:DYNAMIC}%{!?with_pam:NO} \
          -DPLUGIN_COLUMNSTORE=NO \
          -DPLUGIN_CLIENT_ED25519=OFF \
-         -DPYTHON_SHEBANG=%{python_path} \
          -DPLUGIN_CACHING_SHA2_PASSWORD=%{?with_clibrary:DYNAMIC}%{!?with_clibrary:OFF} \
          -DPLUGIN_AWS_KEY_MANAGEMENT=NO \
          -DCONNECT_WITH_MONGO=OFF \

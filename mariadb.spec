@@ -458,11 +458,6 @@ Provides:         mysql-compat-server%{?_isa} = %{sameevr}
 %endif
 Conflicts:        %{?fedora:community-}mysql-server
 
-# Bench subpackage has been deprecated in F32
-Obsoletes: %{name}-bench <= %{sameevr}
-
-Obsoletes:      %{name}-tokudb-engine <= %{sameevr}
-
 %description      server
 MariaDB is a multi-user, multi-threaded SQL database server. It is a
 client/server implementation consisting of a server daemon (mariadbd)

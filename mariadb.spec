@@ -954,6 +954,7 @@ echo "d %{pidfiledir} 0755 mysql mysql -" >>%{buildroot}%{_tmpfilesdir}/%{pkg_na
 
 # Install additional cracklib selinux policy
 %if %{with cracklib}
+mkdir -p %{buildroot}%{_datadir}/selinux/packages/targeted/
 mv %{buildroot}%{_datadir}/mariadb/policy/selinux/mariadb-plugin-cracklib-password-check.pp %{buildroot}%{_datadir}/selinux/packages/targeted/%{pkg_name}-plugin-cracklib-password-check.pp
 rm %{buildroot}%{_datadir}/mariadb/policy/selinux/mariadb-plugin-cracklib-password-check.te
 %endif

@@ -14,10 +14,6 @@
 # Set to 1 to force run the testsuite even if it was already tested in current version
 %global force_run_testsuite 0
 
-# In f20+ use unversioned docdirs, otherwise the old versioned one
-%global _pkgdocdirname %{pkg_name}%{!?_pkgdocdir:-%{version}}
-%{!?_pkgdocdir: %global _pkgdocdir %{_docdir}/%{pkg_name}-%{version}}
-
 # Temporary workaround to fix the "internal compiler error" described in https://bugzilla.redhat.com/show_bug.cgi?id=2239498
 # TODO: Remove when the issue is resolved
 %ifarch i686
@@ -799,8 +795,8 @@ fi
          -DCMAKE_INSTALL_PREFIX="%{_prefix}" \
          -DINSTALL_SYSCONFDIR="%{_sysconfdir}" \
          -DINSTALL_SYSCONF2DIR="%{_sysconfdir}/my.cnf.d" \
-         -DINSTALL_DOCDIR="share/doc/%{_pkgdocdirname}" \
-         -DINSTALL_DOCREADMEDIR="share/doc/%{_pkgdocdirname}" \
+         -DINSTALL_DOCDIR="share/doc/%{pkg_name}" \
+         -DINSTALL_DOCREADMEDIR="share/doc/%{pkg_name}" \
          -DINSTALL_INCLUDEDIR=include/mysql \
          -DINSTALL_INFODIR=share/info \
          -DINSTALL_LIBDIR="%{_lib}" \
@@ -919,7 +915,7 @@ rm %{buildroot}%{_libdir}/pkgconfig/libmariadb.pc
 # but that's pretty wacko --- see also %%{pkg_name}-file-contents.patch)
 install -p -m 644 %{_vpath_builddir}/Docs/INFO_SRC %{buildroot}%{_libdir}/%{pkg_name}/
 install -p -m 644 %{_vpath_builddir}/Docs/INFO_BIN %{buildroot}%{_libdir}/%{pkg_name}/
-rm -r %{buildroot}%{_datadir}/doc/%{_pkgdocdirname}/MariaDB-server-%{version}/
+rm -r %{buildroot}%{_datadir}/doc/%{pkg_name}/MariaDB-server-%{version}
 
 # Logfile creation
 mkdir -p %{buildroot}%{logfiledir}
@@ -1337,7 +1333,7 @@ fi
 
 %if %{with common}
 %files common
-%doc %{_datadir}/doc/%{_pkgdocdirname}
+%doc %{_datadir}/doc/%{pkg_name}
 %dir %{_datadir}/%{pkg_name}
 %{_datadir}/%{pkg_name}/charsets
 %if %{with clibrary}

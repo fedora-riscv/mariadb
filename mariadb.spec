@@ -18,10 +18,6 @@
 %global _pkgdocdirname %{pkg_name}%{!?_pkgdocdir:-%{version}}
 %{!?_pkgdocdir: %global _pkgdocdir %{_docdir}/%{pkg_name}-%{version}}
 
-# By default, patch(1) creates backup files when chunks apply with offsets.
-# Turn that off to ensure such files don't get included in RPMs (cf bz#884755).
-%global _default_patch_flags --no-backup-if-mismatch
-
 # Temporary workaround to fix the "internal compiler error" described in https://bugzilla.redhat.com/show_bug.cgi?id=2239498
 # TODO: Remove when the issue is resolved
 %ifarch i686

@@ -78,11 +78,8 @@
 %bcond_without gssapi
 
 # For some use cases we do not need some parts of the package. Set to "...with" to exclude
-%if 0%{?fedora} || 0%{?rhel} > 7
 %bcond_with    clibrary
-%else
-%bcond_without clibrary
-%endif
+%bcond_with    config
 %bcond_without embedded
 %bcond_without devel
 %bcond_without client
@@ -93,15 +90,6 @@
 %endif
 %bcond_without galera
 %bcond_without backup
-
-# When there is already another package that ships /etc/my.cnf,
-# rather include it than ship the file again, since conflicts between
-# those files may create issues
-%if 0%{?fedora} || 0%{?rhel} > 7
-%bcond_with config
-%else
-%bcond_without config
-%endif
 
 # For deep debugging we need to build binaries with extra debug info
 %bcond_with    debug

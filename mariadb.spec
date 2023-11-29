@@ -114,7 +114,7 @@
 # MariaDB 10.0 and later requires pcre >= 10.34, otherwise we need to use
 # the bundled library, since the package cannot be build with older version
 #   https://mariadb.com/kb/en/pcre/
-%if 0%{?fedora} || 0%{?rhel} > 7
+%if 0%{?fedora} || 0%{?rhel} > 8
 %bcond_without unbundled_pcre
 %else
 %bcond_with unbundled_pcre

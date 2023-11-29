@@ -114,7 +114,6 @@
 # Include systemd files
 %global daemon_name %{pkg_name}
 %global daemon_no_prefix %{pkg_name}
-%global mysqld_pid_dir %{pkg_name}
 
 # We define some system's well known locations here so we can use them easily
 # later when building to another location (like SCL)
@@ -122,7 +121,7 @@
 %global logfiledir %{_localstatedir}/log/%{daemon_name}
 %global logfile %{logfiledir}/%{daemon_name}.log
 # Directory for storing pid file
-%global pidfiledir %{_rundir}/%{mysqld_pid_dir}
+%global pidfiledir %{_rundir}/%{daemon_name}
 # Defining where database data live
 %global dbdatadir %{_localstatedir}/lib/mysql
 # Home directory of mysql user should be same for all packages that create it
@@ -969,9 +968,7 @@ install -p -m 644 %{_vpath_builddir}/scripts/mariadb-scripts-common %{buildroot}
 
 # Install downstream version of tmpfiles
 install -D -p -m 0644 %{_vpath_builddir}/scripts/mariadb.tmpfiles.d %{buildroot}%{_tmpfilesdir}/%{pkg_name}.conf
-%if 0%{?mysqld_pid_dir:1}
 echo "d %{pidfiledir} 0755 mysql mysql -" >>%{buildroot}%{_tmpfilesdir}/%{pkg_name}.conf
-%endif
 
 # install additional galera selinux policy
 %if %{with galera}

@@ -14,9 +14,6 @@
 # Set to 1 to force run the testsuite even if it was already tested in current version
 %global force_run_testsuite 0
 
-# Aditional SELinux rules
-%global require_mysql_selinux 1
-
 # In f20+ use unversioned docdirs, otherwise the old versioned one
 %global _pkgdocdirname %{pkg_name}%{!?_pkgdocdir:-%{version}}
 %{!?_pkgdocdir: %global _pkgdocdir %{_docdir}/%{pkg_name}-%{version}}
@@ -432,7 +429,7 @@ Requires:         %{_sysconfdir}/my.cnf.d
 
 # Additional SELinux rules (common for MariaDB & MySQL) shipped in a separate package
 # For cases, where we want to fix a SELinux issues in MariaDB sooner than patched selinux-policy-targeted package is released
-%if %require_mysql_selinux
+%if %{with require_mysql_selinux}
 # The *-selinux package should only be required on SELinux enabled systems. Therefore the following rich dependency syntax should be used:
 Requires:         (mysql-selinux if selinux-policy-targeted)
 # This ensures that the *-selinux package and all its dependencies are not pulled into containers and other systems that do not use SELinux.

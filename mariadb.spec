@@ -18,9 +18,6 @@
 %global __requires_exclude ^perl\\((hostnames|lib::mtr|lib::v1|mtr_|My::|wsrep)
 %global __provides_exclude_from ^(%{_datadir}/(mysql|mysql-test)/.*|%{_libdir}/%{pkg_name}/plugin/.*\\.so)$
 
-# Define license macro if not present
-%{!?_licensedir:%global license %doc}
-
 # Temporary workaround to fix the "internal compiler error" described in https://bugzilla.redhat.com/show_bug.cgi?id=2239498
 # TODO: Remove when the issue is resolved
 %ifarch i686

@@ -264,7 +264,7 @@ BuildRequires:    openssl openssl-devel
 
 Requires:         bash coreutils grep
 
-Requires:         %{name}-common%{?_isa} = %{sameevr}
+Requires:         %{name}-common = %{sameevr}
 
 %if %{with clibrary}
 # Explicit EVR requirement for -libs is needed for RHBZ#1406320
@@ -296,7 +296,7 @@ utilities.
 %if %{with clibrary}
 %package          libs
 Summary:          The shared libraries required for MariaDB/MySQL clients
-Requires:         %{name}-common%{?_isa} = %{sameevr}
+Requires:         %{name}-common = %{sameevr}
 %if %{with mysql_names}
 Provides:         mysql-libs = %{sameevr}
 Provides:         mysql-libs%{?_isa} = %{sameevr}
@@ -334,6 +334,7 @@ package itself.
 %if %{with common}
 %package          common
 Summary:          The shared files required by server and client
+BuildArch:        noarch
 Requires:         %{_sysconfdir}/my.cnf
 
 
@@ -350,7 +351,8 @@ You will need to install this package to use any other MariaDB package.
 %if %{with errmsg}
 %package          errmsg
 Summary:          The error messages files required by server and embedded
-Requires:         %{name}-common%{?_isa} = %{sameevr}
+BuildArch:        noarch
+Requires:         %{name}-common = %{sameevr}
 
 %description      errmsg
 The package provides error messages files for the MariaDB daemon and the
@@ -362,7 +364,7 @@ MariaDB packages.
 %if %{with galera}
 %package          server-galera
 Summary:          The configuration files and scripts for galera replication
-Requires:         %{name}-common%{?_isa} = %{sameevr}
+Requires:         %{name}-common = %{sameevr}
 Requires:         %{name}-server%{?_isa} = %{sameevr}
 Requires:         galera >= 26.4.3
 BuildRequires:    selinux-policy-devel
@@ -394,8 +396,8 @@ Recommends:       %{name}%{?_isa}
 %else
 Requires:         %{name}%{?_isa}
 %endif
-Requires:         %{name}-common%{?_isa} = %{sameevr}
-Requires:         %{name}-errmsg%{?_isa} = %{sameevr}
+Requires:         %{name}-common = %{sameevr}
+Requires:         %{name}-errmsg = %{sameevr}
 Recommends:       %{name}-server-utils%{?_isa} = %{sameevr}
 Recommends:       %{name}-backup%{?_isa} = %{sameevr}
 %{?with_cracklib:Recommends:   %{name}-cracklib-password-check%{?_isa} = %{sameevr}}
@@ -623,8 +625,8 @@ mariadb-connector-c package.
 %if %{with embedded}
 %package          embedded
 Summary:          MariaDB as an embeddable library
-Requires:         %{name}-common%{?_isa} = %{sameevr}
-Requires:         %{name}-errmsg%{?_isa} = %{sameevr}
+Requires:         %{name}-common = %{sameevr}
+Requires:         %{name}-errmsg = %{sameevr}
 %if %{with mysql_names}
 Provides:         mysql-embedded = %{sameevr}
 Provides:         mysql-embedded%{?_isa} = %{sameevr}
@@ -661,7 +663,7 @@ the embedded version of the MariaDB server.
 %package          test
 Summary:          The test suite distributed with MariaDB
 Requires:         %{name}%{?_isa} = %{sameevr}
-Requires:         %{name}-common%{?_isa} = %{sameevr}
+Requires:         %{name}-common = %{sameevr}
 Requires:         %{name}-server%{?_isa} = %{sameevr}
 Requires:         patch
 Requires:         perl(Env)

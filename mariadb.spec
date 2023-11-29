@@ -123,8 +123,6 @@
 %global pidfiledir       %{_rundir}/%{daemon_name}
 # Defining where database data live
 %global dbdatadir        %{_localstatedir}/lib/mysql
-# Home directory of mysql user should be same for all packages that create it
-%global mysqluserhome    /var/lib/mysql
 
 
 
@@ -1257,7 +1255,7 @@ export MTR_BUILD_THREAD=$(( $(date +%s) % 1100 ))
 
 %pre server
 /usr/sbin/groupadd -g 27 -o -r mysql >/dev/null 2>&1 || :
-/usr/sbin/useradd -M -N -g mysql -o -r -d %{mysqluserhome} -s /sbin/nologin \
+/usr/sbin/useradd -M -N -g mysql -o -r -d %{dbdatadir} -s /sbin/nologin \
   -c "MySQL Server" -u 27 mysql >/dev/null 2>&1 || :
 
 %post server

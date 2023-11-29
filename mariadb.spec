@@ -903,11 +903,6 @@ install -p -m 0755 %{_vpath_builddir}/scripts/mysql_config_multilib %{buildroot}
 ln -s mysql_config.1 %{buildroot}%{_mandir}/man1/mysql_config-%{__isa_bits}.1
 fi
 
-%if %{without clibrary}
-# Client part should be included in package 'mariadb-connector-c'
-rm %{buildroot}%{_libdir}/pkgconfig/libmariadb.pc
-%endif
-
 # install INFO_SRC, INFO_BIN into libdir (upstream thinks these are doc files,
 # but that's pretty wacko --- see also %%{pkg_name}-file-contents.patch)
 install -p -m 644 %{_vpath_builddir}/Docs/INFO_SRC %{buildroot}%{_libdir}/%{pkg_name}/
@@ -929,6 +924,7 @@ install -p -m 0755 -d %{buildroot}%{dbdatadir}
 install -D -p -m 0644 %{_vpath_builddir}/scripts/my.cnf %{buildroot}%{_sysconfdir}/my.cnf
 %else
 rm %{_vpath_builddir}/scripts/my.cnf
+rm %{buildroot}%{_sysconfdir}/my.cnf
 %endif
 
 # use different config file name for each variant of server (mariadb / mysql)
@@ -955,11 +951,6 @@ install -p -m 644 %{_vpath_builddir}/scripts/mariadb-scripts-common %{buildroot}
 # Install downstream version of tmpfiles
 install -D -p -m 0644 %{_vpath_builddir}/scripts/mariadb.tmpfiles.d %{buildroot}%{_tmpfilesdir}/%{pkg_name}.conf
 echo "d %{pidfiledir} 0755 mysql mysql -" >>%{buildroot}%{_tmpfilesdir}/%{pkg_name}.conf
-
-# install additional galera selinux policy
-%if %{with galera}
-install -p -m 644 -D selinux/%{pkg_name}-server-galera.pp %{buildroot}%{_datadir}/selinux/packages/targeted/%{pkg_name}-server-galera.pp
-%endif
 
 # Install additional cracklib selinux policy
 %if %{with cracklib}
@@ -1019,11 +1010,25 @@ install -p -m 0644 %{SOURCE6} %{basename:%{SOURCE6}}
 install -p -m 0644 %{SOURCE16} %{basename:%{SOURCE16}}
 install -p -m 0644 %{SOURCE71} %{basename:%{SOURCE71}}
 
-# install galera config file
 %if %{with galera}
+# install galera config file
 sed -i -r 's|^wsrep_provider=none|wsrep_provider=%{_libdir}/galera/libgalera_smm.so|' %{_vpath_builddir}/support-files/wsrep.cnf
 install -p -m 0644 %{_vpath_builddir}/support-files/wsrep.cnf %{buildroot}%{_sysconfdir}/my.cnf.d/galera.cnf
+
+# install additional galera selinux policy
+install -p -m 644 -D selinux/%{pkg_name}-server-galera.pp %{buildroot}%{_datadir}/selinux/packages/targeted/%{pkg_name}-server-galera.pp
+
+# Fix Galera Replication config file
+#   The replication requires cluster address upon startup (which is end-user specific).
+#   Disable it entirely, rather than have it failing out-of-the-box.
+sed -i 's/^wsrep_on=1/wsrep_on=0/' %{buildroot}%{_sysconfdir}/my.cnf.d/galera.cnf
+%else
+rm %{buildroot}%{_sysconfdir}/sysconfig/clustercheck
+rm %{buildroot}%{_bindir}/{clustercheck,galera_new_cluster}
+rm %{buildroot}%{_bindir}/galera_recovery
 %endif
+
+
 # install the clustercheck script
 mkdir -p %{buildroot}%{_sysconfdir}/sysconfig
 touch %{buildroot}%{_sysconfdir}/sysconfig/clustercheck
@@ -1047,13 +1052,6 @@ sed -i 's/^plugin-load-add/#plugin-load-add/' %{buildroot}%{_sysconfdir}/my.cnf.
 sed -i 's/^plugin-load-add/#plugin-load-add/' %{buildroot}%{_sysconfdir}/my.cnf.d/cracklib_password_check.cnf
 %endif
 
-# Fix Galera Replication config file
-#   The replication requires cluster address upon startup (which is end-user specific).
-#   Disable it entirely, rather than have it failing out-of-the-box.
-%if %{with galera}
-sed -i 's/^wsrep_on=1/wsrep_on=0/' %{buildroot}%{_sysconfdir}/my.cnf.d/galera.cnf
-%endif
-
 %if %{without embedded}
 rm %{buildroot}%{_mandir}/man1/{mysql_client_test_embedded,mysqltest_embedded}.1*
 rm %{buildroot}%{_mandir}/man1/{mariadb-client-test-embedded,mariadb-test-embedded}.1*
@@ -1061,6 +1059,9 @@ rm %{buildroot}%{_mandir}/man1/{mariadb-client-test-embedded,mariadb-test-embedd
 
 
 %if %{without clibrary}
+# Client part should be included in package 'mariadb-connector-c'
+rm %{buildroot}%{_libdir}/pkgconfig/libmariadb.pc
+
 rm %{buildroot}%{_sysconfdir}/my.cnf.d/client.cnf
 # Client library and links
 rm %{buildroot}%{_libdir}/libmariadb.so.*
@@ -1114,10 +1115,6 @@ rm %{buildroot}%{_mandir}/man1/mariadb-{access,admin,binlog,check,dump,find-rows
 rm %{buildroot}%{_sysconfdir}/my.cnf.d/mysql-clients.cnf
 %endif
 
-%if %{without config}
-rm %{buildroot}%{_sysconfdir}/my.cnf
-%endif
-
 %if %{without common}
 rm -r %{buildroot}%{_datadir}/%{pkg_name}/charsets
 %endif
@@ -1147,12 +1144,6 @@ rm %{buildroot}%{_bindir}/{mariadb-client-test,mariadb-test}
 rm %{buildroot}%{_mandir}/man1/{mysql_client_test,mysqltest,my_safe_process}.1*
 rm %{buildroot}%{_mandir}/man1/{mariadb-client-test,mariadb-test}.1*
 rm %{buildroot}%{_mandir}/man1/{mysql-test-run,mysql-stress-test}.pl.1*
-%endif
-
-%if %{without galera}
-rm %{buildroot}%{_sysconfdir}/sysconfig/clustercheck
-rm %{buildroot}%{_bindir}/{clustercheck,galera_new_cluster}
-rm %{buildroot}%{_bindir}/galera_recovery
 %endif
 
 %if %{without rocksdb}

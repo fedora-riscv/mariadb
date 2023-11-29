@@ -273,10 +273,6 @@ BuildRequires:    perl(warnings)
 # for running some openssl tests rhbz#1189180
 BuildRequires:    openssl openssl-devel
 
-%if %{with debug}
-BuildRequires:    valgrind-devel
-%endif
-
 Requires:         bash coreutils grep
 
 Requires:         %{name}-common%{?_isa} = %{sameevr}

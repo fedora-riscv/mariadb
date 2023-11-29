@@ -121,12 +121,7 @@
 %global pcre_bundled_version 10.42
 %endif
 
-# Use main python interpretter version
-%if 0%{?fedora} || 0%{?rhel} > 7
 %global python_path /usr/bin/python3
-%else
-%global python_path /usr/bin/python2
-%endif
 
 # Include systemd files
 %global daemon_name %{pkg_name}

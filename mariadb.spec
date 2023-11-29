@@ -14,6 +14,13 @@
 # Set to 1 to force run the testsuite even if it was already tested in current version
 %global force_run_testsuite 0
 
+# Filtering: https://docs.fedoraproject.org/en-US/packaging-guidelines/AutoProvidesAndRequiresFiltering/
+%global __requires_exclude ^perl\\((hostnames|lib::mtr|lib::v1|mtr_|My::|wsrep)
+%global __provides_exclude_from ^(%{_datadir}/(mysql|mysql-test)/.*|%{_libdir}/%{pkg_name}/plugin/.*\\.so)$
+
+# Define license macro if not present
+%{!?_licensedir:%global license %doc}
+
 # Temporary workaround to fix the "internal compiler error" described in https://bugzilla.redhat.com/show_bug.cgi?id=2239498
 # TODO: Remove when the issue is resolved
 %ifarch i686
@@ -280,13 +287,6 @@ Provides:         mysql-compat-client%{?_isa} = %{sameevr}
 Suggests:         %{name}-server%{?_isa} = %{sameevr}
 
 Conflicts:        %{?fedora:community-}mysql
-
-# Filtering: https://docs.fedoraproject.org/en-US/packaging-guidelines/AutoProvidesAndRequiresFiltering/
-%global __requires_exclude ^perl\\((hostnames|lib::mtr|lib::v1|mtr_|My::|wsrep)
-%global __provides_exclude_from ^(%{_datadir}/(mysql|mysql-test)/.*|%{_libdir}/%{pkg_name}/plugin/.*\\.so)$
-
-# Define license macro if not present
-%{!?_licensedir:%global license %doc}
 
 %description
 MariaDB is a community developed fork from MySQL - a multi-user, multi-threaded

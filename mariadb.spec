@@ -109,23 +109,23 @@
 %global pcre_bundled_version 10.42
 %endif
 
-%global python_path /usr/bin/python3
+%global python_path      /usr/bin/python3
 
 # Include systemd files
-%global daemon_name %{pkg_name}
+%global daemon_name      %{pkg_name}
 %global daemon_no_prefix %{pkg_name}
 
 # We define some system's well known locations here so we can use them easily
 # later when building to another location (like SCL)
-%global logrotateddir %{_sysconfdir}/logrotate.d
-%global logfiledir %{_localstatedir}/log/%{daemon_name}
-%global logfile %{logfiledir}/%{daemon_name}.log
+%global logrotateddir    %{_sysconfdir}/logrotate.d
+%global logfiledir       %{_localstatedir}/log/%{daemon_name}
+%global logfile          %{logfiledir}/%{daemon_name}.log
 # Directory for storing pid file
-%global pidfiledir %{_rundir}/%{daemon_name}
+%global pidfiledir       %{_rundir}/%{daemon_name}
 # Defining where database data live
-%global dbdatadir %{_localstatedir}/lib/mysql
+%global dbdatadir        %{_localstatedir}/lib/mysql
 # Home directory of mysql user should be same for all packages that create it
-%global mysqluserhome /var/lib/mysql
+%global mysqluserhome    /var/lib/mysql
 
 
 

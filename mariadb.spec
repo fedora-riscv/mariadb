@@ -242,10 +242,8 @@ BuildRequires:    bison bison-devel
 %{?with_unbundled_pcre:BuildRequires: pcre2-devel >= 10.34 pkgconf}
 %{!?with_unbundled_pcre:Provides: bundled(pcre2) = %{pcre_bundled_version}}
 # Few utilities needs Perl
-%if 0%{?fedora} || 0%{?rhel} > 7
 BuildRequires:    perl-interpreter
 BuildRequires:    perl-generators
-%endif
 # Some tests requires python
 BuildRequires:    python3
 # Tests requires time and ps and some perl modules

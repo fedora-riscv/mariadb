@@ -203,8 +203,7 @@ Patch9:           %{pkg_name}-ownsetup.patch
 Patch10:          %{pkg_name}-ssl-cipher-tests.patch
 Patch12:          rocksdb-6.8-gcc13.patch
 
-BuildRequires:    make
-BuildRequires:    cmake gcc-c++
+BuildRequires:    make cmake gcc-c++
 BuildRequires:    multilib-rpm-config
 BuildRequires:    selinux-policy-devel
 BuildRequires:    systemd systemd-devel

@@ -421,9 +421,6 @@ Requires:         (mysql-selinux if selinux-policy-targeted)
 # https://fedoraproject.org/wiki/SELinux/IndependentPolicy#Adding_dependency_to_the_spec_file_of_corresponding_package
 %endif
 
-# for fuser in mysql-check-socket
-Requires:         psmisc
-
 Requires:         coreutils
 Requires(pre):    /usr/sbin/useradd
 # We require this to be present for %%{_tmpfilesdir}

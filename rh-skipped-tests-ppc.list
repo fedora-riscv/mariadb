@@ -1,5 +1,2 @@
-# Fails on ppc64le since 10.4.12
-oqgraph.social : 
-
-# Fails since 10.5.2
-rh-skipped-tests-ppc.list :
+# Fails since 10.5.20
+innodb.innodb_defrag_concurrent        :

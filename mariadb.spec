@@ -1,6 +1,5 @@
-# Prefix that is used for patches
-%global pkg_name %{name}
-%global pkgnamepatch mariadb
+# Plain package name for cases, where %{name} differs (e.g. for versioned packages)
+%global pkg_name mariadb
 
 # Regression tests may take a long time (many cores recommended), skip them by
 %{!?runselftest:%global runselftest 1}
@@ -11,7 +10,7 @@
 # The last version on which the full testsuite has been run
 # In case of further rebuilds of that version, don't require full testsuite to be run
 # run only "main" suite
-%global last_tested_version 10.5.19
+%global last_tested_version 10.5.23
 # Set to 1 to force run the testsuite even if it was already tested in current version
 %global force_run_testsuite 0
 
@@ -25,6 +24,12 @@
 # By default, patch(1) creates backup files when chunks apply with offsets.
 # Turn that off to ensure such files don't get included in RPMs (cf bz#884755).
 %global _default_patch_flags --no-backup-if-mismatch
+
+# Temporary workaround to fix the "internal compiler error" described in https://bugzilla.redhat.com/show_bug.cgi?id=2239498
+# TODO: Remove when the issue is resolved
+%ifarch i686
+%global _lto_cflags %{nil}
+%endif
 
 
 
@@ -109,7 +114,7 @@
 %bcond_without unbundled_pcre
 %else
 %bcond_with unbundled_pcre
-%global pcre_bundled_version 10.40
+%global pcre_bundled_version 10.42
 %endif
 
 # Use main python interpretter version
@@ -120,9 +125,9 @@
 %endif
 
 # Include systemd files
-%global daemon_name %{name}
+%global daemon_name %{pkg_name}
 %global daemon_no_prefix %{pkg_name}
-%global mysqld_pid_dir mariadb
+%global mysqld_pid_dir %{pkg_name}
 
 # We define some system's well known locations here so we can use them easily
 # later when building to another location (like SCL)
@@ -149,8 +154,8 @@
 %global sameevr   %{epoch}:%{version}-%{release}
 
 Name:             mariadb
-Version:          10.5.19
-Release:          2%{?with_debug:.debug}.rv64%{?dist}
+Version:          10.5.23
+Release:          1%{?with_debug:.debug}.rv64%{?dist}
 Epoch:            3
 
 Summary:          A very fast and robust SQL database server
@@ -202,17 +207,14 @@ Source72:         mariadb-server-galera.te
 
 #   Patch4: Red Hat distributions specific logrotate fix
 #   it would be big unexpected change, if we start shipping it now. Better wait for MariaDB 10.2
-Patch4:           %{pkgnamepatch}-logrotate.patch
+Patch4:           %{pkg_name}-logrotate.patch
 #   Patch7: add to the CMake file all files where we want macros to be expanded
-Patch7:           %{pkgnamepatch}-scripts.patch
+Patch7:           %{pkg_name}-scripts.patch
 #   Patch9: pre-configure to comply with guidelines
-Patch9:           %{pkgnamepatch}-ownsetup.patch
+Patch9:           %{pkg_name}-ownsetup.patch
 #   Patch10: Fix cipher name in the SSL Cipher name test
-Patch10:          %{pkgnamepatch}-ssl-cipher-tests.patch
-#   https://gcc.gnu.org/gcc-13/porting_to.html
-Patch11:          mariadb-10.5-gcc13.patch
+Patch10:          %{pkg_name}-ssl-cipher-tests.patch
 Patch12:          rocksdb-6.8-gcc13.patch
-Patch13:          mariadb-c99.patch
 
 BuildRequires:    make
 BuildRequires:    cmake gcc-c++
@@ -400,8 +402,10 @@ Summary:          The configuration files and scripts for galera replication
 Requires:         %{name}-common%{?_isa} = %{sameevr}
 Requires:         %{name}-server%{?_isa} = %{sameevr}
 Requires:         galera >= 26.4.3
-Requires(post):   libselinux-utils
-Requires(post):   policycoreutils-python-utils
+BuildRequires:    selinux-policy-devel
+Requires(post):   (libselinux-utils if selinux-policy-targeted)
+Requires(post):   (policycoreutils if selinux-policy-targeted)
+Requires(post):   (policycoreutils-python-utils if selinux-policy-targeted)
 # wsrep requirements
 Requires:         lsof
 # Default wsrep_sst_method
@@ -448,7 +452,10 @@ Requires:         %{_sysconfdir}/my.cnf.d
 # Additional SELinux rules (common for MariaDB & MySQL) shipped in a separate package
 # For cases, where we want to fix a SELinux issues in MariaDB sooner than patched selinux-policy-targeted package is released
 %if %require_mysql_selinux
+# The *-selinux package should only be required on SELinux enabled systems. Therefore the following rich dependency syntax should be used:
 Requires:         (mysql-selinux if selinux-policy-targeted)
+# This ensures that the *-selinux package and all its dependencies are not pulled into containers and other systems that do not use SELinux.
+# https://fedoraproject.org/wiki/SELinux/IndependentPolicy#Adding_dependency_to_the_spec_file_of_corresponding_package
 %endif
 
 # for fuser in mysql-check-socket
@@ -546,6 +553,11 @@ Summary:          The password strength checking plugin
 Requires:         %{name}-server%{?_isa} = %{sameevr}
 BuildRequires:    cracklib-dicts cracklib-devel
 Requires:         cracklib-dicts
+
+BuildRequires:    selinux-policy-devel
+Requires(post):   (libselinux-utils if selinux-policy-targeted)
+Requires(post):   (policycoreutils if selinux-policy-targeted)
+Requires(post):   (policycoreutils-python-utils if selinux-policy-targeted)
 
 %description      cracklib-password-check
 CrackLib is a password strength checking library. It is installed by default
@@ -723,7 +735,7 @@ sources.
 
 
 %prep
-%setup -q -n mariadb-%{version}-downstream_modified
+%setup -q -n %{pkg_name}-%{version}-downstream_modified
 
 # Remove JAR files that upstream puts into tarball
 find . -name "*.jar" -type f -exec rm --verbose -f {} \;
@@ -744,10 +756,8 @@ rm -r storage/rocksdb/
 # Keeping the patch commented out, need to revisit
 #  once the test is re-enabled by upstream  in some future release
 #%patch -P10 -p1
-%patch -P11 -p1
 %if %{with rocksdb}
 %patch -P12 -p1 -d storage/rocksdb/rocksdb/
-%patch -P13 -p1
 %endif
 
 # generate a list of tests that fail, but are not disabled by upstream
@@ -772,12 +782,12 @@ cp %{SOURCE2} %{SOURCE3} %{SOURCE10} %{SOURCE11} %{SOURCE12} \
 %if %{with galera}
 # prepare selinux policy
 mkdir selinux
-sed 's/mariadb-server-galera/%{name}-server-galera/' %{SOURCE72} > selinux/%{name}-server-galera.te
+sed 's/mariadb-server-galera/%{pkg_name}-server-galera/' %{SOURCE72} > selinux/%{pkg_name}-server-galera.te
 %endif
 
 
 # Get version of PCRE, that upstream use
-pcre_version=`grep -e "https://github.com/PhilipHazel/pcre2/releases/download" cmake/pcre.cmake | sed -r "s;.*pcre2-([[:digit:]]+\.[[:digit:]]+).*;\1;" `
+pcre_version=`grep -e "https://github.com/PCRE2Project/pcre2/releases/download" cmake/pcre.cmake | sed -r "s;.*pcre2-([[:digit:]]+\.[[:digit:]]+).*;\1;" `
 
 # Check if the PCRE version in macro 'pcre_bundled_version', used in Provides: bundled(...), is the same version as upstream actually bundles
 %if %{without unbundled_pcre}
@@ -837,8 +847,8 @@ fi
          -DMYSQL_DATADIR="%{dbdatadir}" \
          -DMYSQL_UNIX_ADDR="/var/lib/mysql/mysql.sock" \
          -DTMPDIR=/var/tmp \
-         -DGRN_DATA_DIR=share/%{name}-server/groonga \
-         -DGROONGA_NORMALIZER_MYSQL_PROJECT_NAME=%{name}-server/groonga-normalizer-mysql \
+         -DGRN_DATA_DIR=share/%{pkg_name}-server/groonga \
+         -DGROONGA_NORMALIZER_MYSQL_PROJECT_NAME=%{pkg_name}-server/groonga-normalizer-mysql \
          -DENABLED_LOCAL_INFILE=ON \
          -DENABLE_DTRACE=ON \
          -DSECURITY_HARDENED=OFF \
@@ -909,7 +919,7 @@ cmake -B %{_vpath_builddir} -LAH
 # build selinux policy
 %if %{with galera}
 pushd selinux
-make -f /usr/share/selinux/devel/Makefile %{name}-server-galera.pp
+make -f /usr/share/selinux/devel/Makefile %{pkg_name}-server-galera.pp
 %endif
 
 
@@ -945,7 +955,7 @@ rm %{buildroot}%{_libdir}/pkgconfig/libmariadb.pc
 %endif
 
 # install INFO_SRC, INFO_BIN into libdir (upstream thinks these are doc files,
-# but that's pretty wacko --- see also %%{name}-file-contents.patch)
+# but that's pretty wacko --- see also %%{pkg_name}-file-contents.patch)
 install -p -m 644 %{_vpath_builddir}/Docs/INFO_SRC %{buildroot}%{_libdir}/%{pkg_name}/
 install -p -m 644 %{_vpath_builddir}/Docs/INFO_BIN %{buildroot}%{_libdir}/%{pkg_name}/
 rm -r %{buildroot}%{_datadir}/doc/%{_pkgdocdirname}/MariaDB-server-%{version}/
@@ -989,14 +999,20 @@ install -p -m 755 %{_vpath_builddir}/scripts/mariadb-check-upgrade %{buildroot}%
 install -p -m 644 %{_vpath_builddir}/scripts/mariadb-scripts-common %{buildroot}%{_libexecdir}/mariadb-scripts-common
 
 # Install downstream version of tmpfiles
-install -D -p -m 0644 %{_vpath_builddir}/scripts/mariadb.tmpfiles.d %{buildroot}%{_tmpfilesdir}/%{name}.conf
+install -D -p -m 0644 %{_vpath_builddir}/scripts/mariadb.tmpfiles.d %{buildroot}%{_tmpfilesdir}/%{pkg_name}.conf
 %if 0%{?mysqld_pid_dir:1}
-echo "d %{pidfiledir} 0755 mysql mysql -" >>%{buildroot}%{_tmpfilesdir}/%{name}.conf
+echo "d %{pidfiledir} 0755 mysql mysql -" >>%{buildroot}%{_tmpfilesdir}/%{pkg_name}.conf
 %endif
 
 # install additional galera selinux policy
 %if %{with galera}
-install -p -m 644 -D selinux/%{name}-server-galera.pp %{buildroot}%{_datadir}/selinux/packages/%{name}/%{name}-server-galera.pp
+install -p -m 644 -D selinux/%{pkg_name}-server-galera.pp %{buildroot}%{_datadir}/selinux/packages/targeted/%{pkg_name}-server-galera.pp
+%endif
+
+# Install additional cracklib selinux policy
+%if %{with cracklib}
+mv %{buildroot}%{_datadir}/mariadb/policy/selinux/mariadb-plugin-cracklib-password-check.pp %{buildroot}%{_datadir}/selinux/packages/targeted/%{pkg_name}-plugin-cracklib-password-check.pp
+rm %{buildroot}%{_datadir}/mariadb/policy/selinux/mariadb-plugin-cracklib-password-check.te
 %endif
 
 %if %{with test}
@@ -1253,9 +1269,11 @@ export MTR_BUILD_THREAD=$(( $(date +%s) % 1100 ))
       --skip-test-list=unstable-tests
     %endif
     # Second run for the SPIDER suites that fail with SCA (ssl self signed certificate)
-    perl ./mysql-test-run.pl $common_testsuite_arguments --skip-ssl --big-test --mem --suite=spider,spider/bg,spider/bugfix,spider/handler \
+    perl ./mysql-test-run.pl $common_testsuite_arguments --skip-ssl --big-test --suite=spider,spider/bg,spider/bugfix,spider/handler \
     %if %{ignore_testsuite_result}
       --max-test-fail=999 || :
+    %else
+      --skip-test-list=unstable-tests
     %endif
   # blank line
   fi
@@ -1277,36 +1295,54 @@ export MTR_BUILD_THREAD=$(( $(date +%s) % 1100 ))
 /usr/sbin/useradd -M -N -g mysql -o -r -d %{mysqluserhome} -s /sbin/nologin \
   -c "MySQL Server" -u 27 mysql >/dev/null 2>&1 || :
 
-%if %{with galera}
-%post server-galera
-# Allow ports needed for the replication:
-# https://mariadb.com/kb/en/library/configuring-mariadb-galera-cluster/#network-ports
-#   Galera Replication Port
-semanage port -a -t mysqld_port_t -p tcp 4567 >/dev/null 2>&1 || :
-semanage port -a -t mysqld_port_t -p udp 4567 >/dev/null 2>&1 || :
-#   IST Port
-semanage port -a -t mysqld_port_t -p tcp 4568 >/dev/null 2>&1 || :
-#   SST Port
-semanage port -a -t mysqld_port_t -p tcp 4444 >/dev/null 2>&1 || :
-
-semodule -i %{_datadir}/selinux/packages/%{name}/%{name}-server-galera.pp >/dev/null 2>&1 || :
-%endif
-
 %post server
 %systemd_post %{daemon_name}.service
 
 %preun server
 %systemd_preun %{daemon_name}.service
 
+%postun server
+%systemd_postun_with_restart %{daemon_name}.service
+
 %if %{with galera}
+%post server-galera
+%selinux_modules_install -s "targeted" %{_datadir}/selinux/packages/targeted/%{pkg_name}-server-galera.pp
+
+# Allow ports needed for the replication:
+# https://fedoraproject.org/wiki/SELinux/IndependentPolicy#Port_Labeling
+if [ $1 -eq 1 ]; then
+  # https://mariadb.com/kb/en/library/configuring-mariadb-galera-cluster/#network-ports
+  #   Galera Replication Port
+  semanage port -a -t mysqld_port_t -p tcp 4567 >/dev/null 2>&1 || :
+  semanage port -a -t mysqld_port_t -p udp 4567 >/dev/null 2>&1 || :
+  #   IST Port
+  semanage port -a -t mysqld_port_t -p tcp 4568 >/dev/null 2>&1 || :
+  #   SST Port
+  semanage port -a -t mysqld_port_t -p tcp 4444 >/dev/null 2>&1 || :
+fi
+
 %postun server-galera
 if [ $1 -eq 0 ]; then
-    semodule -r %{name}-server-galera 2>/dev/null || :
+    %selinux_modules_uninstall -s "targeted" %{pkg_name}-server-galera
+
+    # Delete port labeling when the package is removed
+    # https://fedoraproject.org/wiki/SELinux/IndependentPolicy#Port_Labeling
+    semanage port -d -t mysqld_port_t -p tcp 4567 >/dev/null 2>&1 || :
+    semanage port -d -t mysqld_port_t -p udp 4567 >/dev/null 2>&1 || :
+    semanage port -d -t mysqld_port_t -p tcp 4568 >/dev/null 2>&1 || :
+    semanage port -d -t mysqld_port_t -p tcp 4444 >/dev/null 2>&1 || :
 fi
 %endif
 
-%postun server
-%systemd_postun_with_restart %{daemon_name}.service
+%if %{with cracklib}
+%post cracklib-password-check
+%selinux_modules_install -s "targeted" %{_datadir}/selinux/packages/targeted/%{pkg_name}-plugin-cracklib-password-check.pp
+
+%postun cracklib-password-check
+if [ $1 -eq 0 ]; then
+    %selinux_modules_uninstall -s "targeted" %{pkg_name}-plugin-cracklib-password-check
+fi
+%endif
 
 
 
@@ -1391,7 +1427,7 @@ fi
 %{_bindir}/galera_recovery
 %config(noreplace) %{_sysconfdir}/my.cnf.d/galera.cnf
 %attr(0640,root,root) %ghost %config(noreplace) %{_sysconfdir}/sysconfig/clustercheck
-%{_datadir}/selinux/packages/%{name}/%{name}-server-galera.pp
+%{_datadir}/selinux/packages/targeted/%{pkg_name}-server-galera.pp
 %endif
 
 %files server
@@ -1494,10 +1530,10 @@ fi
 %{_datadir}/%{pkg_name}/mroonga/uninstall.sql
 %license %{_datadir}/%{pkg_name}/mroonga/COPYING
 %license %{_datadir}/%{pkg_name}/mroonga/AUTHORS
-%license %{_datadir}/%{name}-server/groonga-normalizer-mysql/lgpl-2.0.txt
-%license %{_datadir}/%{name}-server/groonga/COPYING
-%doc %{_datadir}/%{name}-server/groonga-normalizer-mysql/README.md
-%doc %{_datadir}/%{name}-server/groonga/README.md
+%license %{_datadir}/%{pkg_name}-server/groonga-normalizer-mysql/lgpl-2.0.txt
+%license %{_datadir}/%{pkg_name}-server/groonga/COPYING
+%doc %{_datadir}/%{pkg_name}-server/groonga-normalizer-mysql/README.md
+%doc %{_datadir}/%{pkg_name}-server/groonga/README.md
 %endif
 %if %{with galera}
 %{_datadir}/%{pkg_name}/wsrep.cnf
@@ -1524,13 +1560,14 @@ fi
 %attr(0660,mysql,mysql) %config %ghost %verify(not md5 size mtime) %{logfile}
 %config(noreplace) %{logrotateddir}/%{daemon_name}
 
-%{_tmpfilesdir}/%{name}.conf
-%{_sysusersdir}/%{name}.conf
+%{_tmpfilesdir}/%{pkg_name}.conf
+%{_sysusersdir}/%{pkg_name}.conf
 
 %if %{with cracklib}
 %files cracklib-password-check
 %config(noreplace) %{_sysconfdir}/my.cnf.d/cracklib_password_check.cnf
 %{_libdir}/%{pkg_name}/plugin/cracklib_password_check.so
+%{_datadir}/selinux/packages/targeted/%{pkg_name}-plugin-cracklib-password-check.pp
 %endif
 
 %if %{with backup}
@@ -1653,6 +1690,25 @@ fi
 %endif
 
 %changelog
+* Fri Dec 1 2023 Guoguo <i@qwq.trade> - 3:10.5.23-1.rv64
+- Upgrade from stream
+
+* Thu Nov 16 2023 Michal Schorm <mschorm@redhat.com> - 3:10.5.23-1
+- Rebase to 10.5.23
+
+* Mon Sep 04 2023 Michal Schorm <mschorm@redhat.com> - 3:10.5.22-1
+- Rebase to 10.5.22
+
+* Wed Jul 26 2023 Michal Schorm <mschorm@redhat.com> - 3:10.5.21-1
+- Rebase to version 10.5.21
+
+* Thu Jul 20 2023 Fedora Release Engineering <releng@fedoraproject.org> - 3:10.5.20-2
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_39_Mass_Rebuild
+
+* Tue May 30 2023 Lukas Javorsky <ljavorsk@redhat.com> - 3:10.5.20-1
+- Rebase to version 10.5.20
+- Patches 11 and 13 were upstreamed
+
 * Mon May 01 2023 Liu Yang <Yang.Liu.sn@gmail.com> - 3:10.5.19-2.rv64
 - Fix pkgconfig dir path for riscv64.
 

@@ -968,11 +968,6 @@ rm %{buildroot}%{_mandir}/man1/mytop.1*
 # Should be shipped with mariadb-connector-c
 rm %{buildroot}%{_mandir}/man1/mariadb_config.1*
 
-# put logrotate script where it needs to be
-mkdir -p %{buildroot}%{logrotateddir}
-mv %{buildroot}%{_datadir}/%{pkg_name}/mysql-log-rotate %{buildroot}%{logrotateddir}/%{daemon_name}
-chmod 644 %{buildroot}%{logrotateddir}/%{daemon_name}
-
 # for compatibility with upstream RPMs, create mysqld symlink in sbin
 mkdir -p %{buildroot}%{_sbindir}
 ln -s %{_libexecdir}/mysqld %{buildroot}%{_sbindir}/mysqld
@@ -1008,7 +1003,7 @@ touch %{buildroot}%{_sysconfdir}/sysconfig/clustercheck
 install -p -m 0755 %{_vpath_builddir}/scripts/clustercheck %{buildroot}%{_bindir}/clustercheck
 
 # remove duplicate logrotate script
-rm %{buildroot}%{logrotateddir}/mysql
+rm %{buildroot}%{_datadir}/mariadb/mariadb.logrotate
 # Remove AppArmor files
 rm -r %{buildroot}%{_datadir}/%{pkg_name}/policy/apparmor
 

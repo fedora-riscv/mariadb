@@ -130,7 +130,7 @@
 %global sameevr   %{epoch}:%{version}-%{release}
 
 Name:             mariadb
-Version:          10.10.7
+Version:          10.11.6
 Release:          1%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
@@ -1098,7 +1098,7 @@ rm %{buildroot}%{_datadir}/%{pkg_name}/errmsg-utf8.txt
 rm -r %{buildroot}%{_datadir}/%{pkg_name}/{english,czech,danish,dutch,estonian,\
 french,german,greek,hungarian,italian,japanese,korean,norwegian,norwegian-ny,\
 polish,portuguese,romanian,russian,serbian,slovak,spanish,swedish,ukrainian,hindi,\
-bulgarian,chinese}
+bulgarian,chinese,georgian}
 %endif
 
 %if %{without test}
@@ -1333,6 +1333,7 @@ fi
 %lang(uk) %{_datadir}/%{pkg_name}/ukrainian
 %lang(bg) %{_datadir}/%{pkg_name}/bulgarian
 %lang(zh) %{_datadir}/%{pkg_name}/chinese
+%lang(ka) %{_datadir}/%{pkg_name}/georgian
 %endif
 
 %if %{with galera}
@@ -1615,6 +1616,9 @@ fi
 %endif
 
 %changelog
+* Thu Jan 25 2024 Michal Schorm <mschorm@redhat.com> - 3:10.11.6-1
+- Rebase to 10.11.6
+
 * Thu Jan 25 2024 Michal Schorm <mschorm@redhat.com> - 3:10.10.7-1
 - Rebase to 10.10.7
 

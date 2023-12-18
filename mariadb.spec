@@ -130,7 +130,7 @@
 %global sameevr   %{epoch}:%{version}-%{release}
 
 Name:             mariadb
-Version:          10.8.8
+Version:          10.9.8
 Release:          1%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
@@ -810,6 +810,7 @@ fi
          -DCONNECT_WITH_MONGO=OFF \
          -DCONNECT_WITH_JDBC=OFF \
          -DPLUGIN_PROVIDER_LZMA=NO \
+         -DPLUGIN_HASHICORP_KEY_MANAGEMENT=NO \
 %{?with_debug: -DCMAKE_BUILD_TYPE=Debug -DWITH_ASAN=OFF -DWITH_INNODB_EXTRA_DEBUG=ON -DWITH_VALGRIND=ON}
 
 # The -DSECURITY_HARDENED is used to force a set of compilation flags for hardening
@@ -1379,6 +1380,8 @@ fi
 %config(noreplace) %{_sysconfdir}/my.cnf.d/provider_lz4.cnf
 #%config(noreplace) %{_sysconfdir}/my.cnf.d/provider_lzma.cnf
 
+#%config(noreplace) %{_sysconfdir}/my.cnf.d/hashicorp_key_management.cnf
+
 %{_sbindir}/mysqld
 %{_sbindir}/mariadbd
 %{_libexecdir}/{mysqld,mariadbd}
@@ -1612,6 +1615,9 @@ fi
 %endif
 
 %changelog
+* Thu Jan 25 2024 Michal Schorm <mschorm@redhat.com> - 3:10.9.8-1
+- Rebase to 10.9.8
+
 * Thu Jan 25 2024 Michal Schorm <mschorm@redhat.com> - 3:10.8.8-1
 - Rebase to 10.8.8
 

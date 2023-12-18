@@ -130,8 +130,8 @@
 %global sameevr   %{epoch}:%{version}-%{release}
 
 Name:             mariadb
-Version:          10.5.23
-Release:          100%{?with_debug:.debug}%{?dist}
+Version:          10.6.16
+Release:          1%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A very fast and robust SQL database server
@@ -1041,6 +1041,7 @@ rm %{buildroot}%{_libdir}/libmariadb.so.*
 unlink %{buildroot}%{_libdir}/libmysqlclient.so
 unlink %{buildroot}%{_libdir}/libmysqlclient_r.so
 unlink %{buildroot}%{_libdir}/libmariadb.so
+rm %{buildroot}%{_mandir}/man3/*
 # Client plugins
 rm %{buildroot}%{_libdir}/%{pkg_name}/plugin/{dialog.so,mysql_clear_password.so,sha256_password.so}
 %if %{with gssapi}
@@ -1437,6 +1438,7 @@ fi
 %{_datadir}/%{pkg_name}/maria_add_gis_sp.sql
 %{_datadir}/%{pkg_name}/maria_add_gis_sp_bootstrap.sql
 %{_datadir}/%{pkg_name}/mysql_system_tables.sql
+%{_datadir}/%{pkg_name}/mysql_sys_schema.sql
 %{_datadir}/%{pkg_name}/mysql_system_tables_data.sql
 %{_datadir}/%{pkg_name}/mysql_test_data_timezone.sql
 %{_datadir}/%{pkg_name}/mysql_performance_tables.sql
@@ -1567,6 +1569,7 @@ fi
 %{_datadir}/aclocal/mysql.m4
 %{_libdir}/pkgconfig/*mariadb.pc
 %if %{with clibrary}
+%{_mandir}/man3/*
 %{_libdir}/{libmysqlclient.so.18,libmariadb.so,libmysqlclient.so,libmysqlclient_r.so}
 %{_bindir}/mysql_config*
 %{_bindir}/mariadb_config*
@@ -1606,6 +1609,9 @@ fi
 %endif
 
 %changelog
+* Thu Jan 25 2024 Michal Schorm <mschorm@redhat.com> - 3:10.6.16-1
+- Rebase to 10.6.16
+
 * Thu Jan 25 2024 Fedora Release Engineering <releng@fedoraproject.org> - 3:10.5.23-3
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_40_Mass_Rebuild
 

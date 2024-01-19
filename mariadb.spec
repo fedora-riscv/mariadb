@@ -1192,6 +1192,8 @@ export MTR_BUILD_THREAD=$(( $(date +%s) % 1100 ))
 
   # There might be a dangling symlink left from the testing, remove it to not be installed
   rm -rf ./var
+  # Remove temporary files created by the testsuite execution
+  find ./ -type f -name '*~' -exec rm {} +
 )
 
 # NOTE: the Spider SE has 2 more hidden testsuites "oracle" and "oracle2".

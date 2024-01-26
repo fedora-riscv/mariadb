@@ -834,8 +834,10 @@ CFLAGS="$CFLAGS -O0 -g"
 %if 0%{?fedora} >= 32
 CFLAGS="$CFLAGS -Wno-error=class-memaccess"
 CFLAGS="$CFLAGS -Wno-error=enum-conversion"
-%endif # f32
-%endif # debug
+# endif f32
+%endif
+# endif debug
+%endif
 
 CXXFLAGS="$CFLAGS"
 CPPFLAGS="$CFLAGS"
@@ -1103,11 +1105,13 @@ rm %{buildroot}%{_bindir}/{mysql_client_test_embedded,mysqltest_embedded}
 rm %{buildroot}%{_bindir}/{mariadb-client-test-embedded,mariadb-test-embedded}
 rm %{buildroot}%{_mandir}/man1/{mysql_client_test_embedded,mysqltest_embedded}.1*
 rm %{buildroot}%{_mandir}/man1/{mariadb-client-test-embedded,mariadb-test-embedded}.1*
-%endif # embedded
+# endif embedded
+%endif
 %if %{with pam}
 rm %{buildroot}/suite/plugins/pam/mariadb_mtr
 rm %{buildroot}/suite/plugins/pam/pam_mariadb_mtr.so
-%endif # pam
+# endif pam
+%endif
 rm %{buildroot}%{_bindir}/{mysql_client_test,mysqltest}
 rm %{buildroot}%{_bindir}/{mariadb-client-test,mariadb-test}
 rm %{buildroot}%{_mandir}/man1/{mysql_client_test,mysqltest,my_safe_process}.1*
@@ -1376,9 +1380,9 @@ fi
 %config(noreplace) %{_sysconfdir}/my.cnf.d/spider.cnf
 
 %config(noreplace) %{_sysconfdir}/my.cnf.d/provider_lz4.cnf
-#%config(noreplace) %{_sysconfdir}/my.cnf.d/provider_lzma.cnf
+#%%config(noreplace) %%{_sysconfdir}/my.cnf.d/provider_lzma.cnf
 
-#%config(noreplace) %{_sysconfdir}/my.cnf.d/hashicorp_key_management.cnf
+#%%config(noreplace) %%{_sysconfdir}/my.cnf.d/hashicorp_key_management.cnf
 
 %{_sbindir}/mysqld
 %{_sbindir}/mariadbd

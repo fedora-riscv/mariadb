@@ -835,7 +835,6 @@ fi
          -DCONC_WITH_SSL=%{?with_clibrary:ON}%{!?with_clibrary:NO} \
          -DWITH_SSL=system \
          -DWITH_ZLIB=system \
-         -DLZ4_LIBS=/usr/%{_lib}/liblz4.so \
          -DLZ4_LIBS=%{?with_lz4:/usr/%{_lib}/liblz4.so}%{!?with_lz4:} \
          -DWITH_INNODB_LZ4=%{?with_lz4:ON}%{!?with_lz4:OFF} \
          -DWITH_ROCKSDB_LZ4=%{?with_lz4:ON}%{!?with_lz4:OFF} \

@@ -33,6 +33,54 @@
 
 
 
+# For some use cases we do not need some parts of the package. Set to "...with" to exclude
+%bcond_with    clibrary
+%bcond_with    config
+%bcond_without embedded
+%bcond_without devel
+%bcond_without client
+%bcond_without common
+%bcond_without errmsg
+%bcond_without galera
+%bcond_without backup
+%if !0%{?flatpak}
+%bcond_without test
+%endif
+
+# Page compression algorithms for InnoDB & XtraDB
+%bcond_without lz4
+
+# Aditional SELinux rules from a standalone package 'mysql-selinux' (that holds rules shared between MariaDB and MySQL)
+%bcond_without require_mysql_selinux
+
+# For deep debugging we need to build binaries with extra debug info
+%bcond_with    debug
+
+%bcond_without gssapi
+# PAM authentication plugin
+%if !0%{?flatpak}
+%bcond_without pam
+%endif
+
+# The Open Query GRAPH engine (OQGRAPH) is a computation engine allowing
+# hierarchies and more complex graph structures to be handled in a relational fashion
+%bcond_without oqgraph
+
+# Other plugins
+# S3 storage engine
+#   https://mariadb.com/kb/en/s3-storage-engine/
+%if 0%{?fedora}
+%bcond_without cracklib
+%bcond_without connect
+%bcond_without sphinx
+%bcond_without s3
+%else
+%bcond_with cracklib
+%bcond_with connect
+%bcond_with sphinx
+%bcond_with s3
+%endif
+
 # Mroonga engine
 #   https://mariadb.com/kb/en/mariadb/about-mroonga/
 #   Current version in MariaDB, 7.07, only supports the x86_64
@@ -50,52 +98,6 @@
 %bcond_with rocksdb
 %endif
 %endif
-
-# The Open Query GRAPH engine (OQGRAPH) is a computation engine allowing
-# hierarchies and more complex graph structures to be handled in a relational fashion
-%bcond_without oqgraph
-
-# PAM authentication plugin
-%if !0%{?flatpak}
-%bcond_without pam
-%endif
-
-# Other plugins
-# S3 storage engine
-#   https://mariadb.com/kb/en/s3-storage-engine/
-%if 0%{?fedora}
-%bcond_without cracklib
-%bcond_without connect
-%bcond_without sphinx
-%bcond_without s3
-%else
-%bcond_with cracklib
-%bcond_with connect
-%bcond_with sphinx
-%bcond_with s3
-%endif
-
-%bcond_without gssapi
-
-# For some use cases we do not need some parts of the package. Set to "...with" to exclude
-%bcond_with    clibrary
-%bcond_with    config
-%bcond_without embedded
-%bcond_without devel
-%bcond_without client
-%bcond_without common
-%bcond_without errmsg
-%if !0%{?flatpak}
-%bcond_without test
-%endif
-%bcond_without galera
-%bcond_without backup
-
-# For deep debugging we need to build binaries with extra debug info
-%bcond_with    debug
-
-# Page compression algorithms for InnoDB & XtraDB
-%bcond_without lz4
 
 
 

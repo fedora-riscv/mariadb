@@ -1471,7 +1471,15 @@ fi
 %{_datadir}/%{pkg_name}/policy/selinux/mariadb-server.*
 %{_datadir}/%{pkg_name}/policy/selinux/mariadb.*
 
-%{_unitdir}/%{daemon_name}*
+# More on socket activation or extra port service at
+# https://mariadb.com/kb/en/systemd/
+%{_unitdir}/%{daemon_name}.service
+%{_unitdir}/%{daemon_name}@.service
+%{_unitdir}/%{daemon_name}.socket
+%{_unitdir}/%{daemon_name}@.socket
+%{_unitdir}/%{daemon_name}-extra.socket
+%{_unitdir}/%{daemon_name}-extra@.socket
+%{_unitdir}/%{daemon_name}@bootstrap.service.d
 
 %{_libexecdir}/mariadb-prepare-db-dir
 %{_libexecdir}/mariadb-check-socket

@@ -120,12 +120,11 @@
 
 
 
-# Provide mysql names for compatibility
-%if 0%{?fedora}
-%bcond_without mysql_names
-%else
-%bcond_with    mysql_names
-%endif
+# Set explicit conflicts with 'mysql' packages
+%bcond_without conflicts_mysql
+# Set explicit conflicts with 'community-mysql' names, provided by 'mysql' packages
+#   'community-mysql' names are deprecated and to be removed in future Fedora
+%bcond_without conflicts_community_mysql
 
 # Make long macros shorter
 %global sameevr   %{epoch}:%{version}-%{release}
@@ -274,16 +273,13 @@ Requires:         %{name}-libs%{?_isa} = %{sameevr}
 Requires:         mariadb-connector-c >= 3.0
 %endif
 
-%if %{with mysql_names}
-Provides:         mysql = %{sameevr}
-Provides:         mysql%{?_isa} = %{sameevr}
-Provides:         mysql-compat-client = %{sameevr}
-Provides:         mysql-compat-client%{?_isa} = %{sameevr}
-%endif
-
 Suggests:         %{name}-server%{?_isa} = %{sameevr}
 
-Conflicts:        %{?fedora:community-}mysql
+%{?with_conflicts_mysql:Conflicts: mysql}
+%{?with_conflicts_community_mysql:Conflicts: community-mysql}
+# Explicitly disallow combination mariadb + mysql-server
+%{?with_conflicts_mysql:Conflicts: mysql-server}
+%{?with_conflicts_community_mysql:Conflicts: community-mysql-server}
 
 %description
 MariaDB is a community developed fork from MySQL - a multi-user, multi-threaded
@@ -297,10 +293,9 @@ utilities.
 %package          libs
 Summary:          The shared libraries required for MariaDB/MySQL clients
 Requires:         %{name}-common = %{sameevr}
-%if %{with mysql_names}
-Provides:         mysql-libs = %{sameevr}
-Provides:         mysql-libs%{?_isa} = %{sameevr}
-%endif
+
+%{?with_conflicts_mysql:Conflicts: mysql-libs}
+%{?with_conflicts_community_mysql:Conflicts: community-mysql-libs}
 
 %description      libs
 The mariadb-libs package provides the essential shared libraries for any
@@ -388,14 +383,7 @@ member. MariaDB is a community developed fork originally from MySQL.
 %package          server
 Summary:          The MariaDB server and related files
 
-# note: no version here = %%{version}-%%{release}
-%if %{with mysql_names}
-Requires:         mysql-compat-client%{?_isa}
-Requires:         mysql%{?_isa}
-Recommends:       %{name}%{?_isa}
-%else
 Requires:         %{name}%{?_isa}
-%endif
 Requires:         %{name}-common = %{sameevr}
 Requires:         %{name}-errmsg = %{sameevr}
 Recommends:       %{name}-server-utils%{?_isa} = %{sameevr}
@@ -431,13 +419,12 @@ Requires:         systemd
 %{?systemd_requires}
 # RHBZ#1496131; use 'iproute' instead of 'net-tools'
 Requires:         iproute
-%if %{with mysql_names}
-Provides:         mysql-server = %{sameevr}
-Provides:         mysql-server%{?_isa} = %{sameevr}
-Provides:         mysql-compat-server = %{sameevr}
-Provides:         mysql-compat-server%{?_isa} = %{sameevr}
-%endif
-Conflicts:        %{?fedora:community-}mysql-server
+
+%{?with_conflicts_mysql:Conflicts: mysql-server}
+%{?with_conflicts_community_mysql:Conflicts: community-mysql-server}
+# Explicitly disallow combination mariadb-server + mysql
+%{?with_conflicts_mysql:Conflicts: mysql}
+%{?with_conflicts_community_mysql:Conflicts: community-mysql}
 
 %description      server
 MariaDB is a multi-user, multi-threaded SQL database server. It is a
@@ -581,12 +568,11 @@ but still have them accessible for reading in MariaDB.
 %package          server-utils
 Summary:          Non-essential server utilities for MariaDB/MySQL applications
 Requires:         %{name}-server%{?_isa} = %{sameevr}
-%if %{with mysql_names}
-Provides:         mysql-perl = %{sameevr}
-%endif
-Conflicts:        %{?fedora:community-}mysql-server
 # mysqlhotcopy needs DBI/DBD support
 Requires:         perl(DBI) perl(DBD::MariaDB)
+
+%{?with_conflicts_mysql:Conflicts: mysql-server}
+%{?with_conflicts_community_mysql:Conflicts: community-mysql-server}
 
 %description      server-utils
 This package contains all non-essential server utilities and scripts for
@@ -602,11 +588,9 @@ Requires:         openssl-devel
 %if %{without clibrary}
 Requires:         mariadb-connector-c-devel >= 3.0
 %endif
-%if %{with mysql_names}
-Provides:         mysql-devel = %{sameevr}
-Provides:         mysql-devel%{?_isa} = %{sameevr}
-%endif
-Conflicts:        %{?fedora:community-}mysql-devel
+
+%{?with_conflicts_mysql:Conflicts: mysql-devel}
+%{?with_conflicts_community_mysql:Conflicts: community-mysql-devel}
 
 %description      devel
 MariaDB is a multi-user, multi-threaded SQL database server.
@@ -627,10 +611,6 @@ mariadb-connector-c package.
 Summary:          MariaDB as an embeddable library
 Requires:         %{name}-common = %{sameevr}
 Requires:         %{name}-errmsg = %{sameevr}
-%if %{with mysql_names}
-Provides:         mysql-embedded = %{sameevr}
-Provides:         mysql-embedded%{?_isa} = %{sameevr}
-%endif
 
 %description      embedded
 MariaDB is a multi-user, multi-threaded SQL database server. This
@@ -645,11 +625,9 @@ Requires:         %{name}-embedded%{?_isa} = %{sameevr}
 Requires:         %{name}-devel%{?_isa} = %{sameevr}
 # embedded-devel should require libaio-devel (rhbz#1290517)
 Requires:         libaio-devel
-%if %{with mysql_names}
-Provides:         mysql-embedded-devel = %{sameevr}
-Provides:         mysql-embedded-devel%{?_isa} = %{sameevr}
-%endif
-Conflicts:        %{?fedora:community-}mysql-embedded-devel
+
+%{?with_conflicts_mysql:Conflicts: mysql-embedded-devel}
+%{?with_conflicts_community_mysql:Conflicts: community-mysql-embedded-devel}
 
 %description      embedded-devel
 MariaDB is a multi-user, multi-threaded SQL database server.
@@ -677,11 +655,9 @@ Requires:         perl(Socket)
 Requires:         perl(Sys::Hostname)
 Requires:         perl(Test::More)
 Requires:         perl(Time::HiRes)
-Conflicts:        %{?fedora:community-}mysql-test
-%if %{with mysql_names}
-Provides:         mysql-test = %{sameevr}
-Provides:         mysql-test%{?_isa} = %{sameevr}
-%endif
+
+%{?with_conflicts_mysql:Conflicts: mysql-test}
+%{?with_conflicts_community_mysql:Conflicts: community-mysql-test}
 
 %description      test
 MariaDB is a multi-user, multi-threaded SQL database server.

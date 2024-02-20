@@ -131,7 +131,7 @@
 
 Name:             mariadb
 Version:          10.11.6
-Release:          1%{?with_debug:.debug}%{?dist}
+Release:          2%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A very fast and robust SQL database server
@@ -1028,6 +1028,11 @@ rm %{buildroot}%{_mandir}/man1/{mariadb-client-test-embedded,mariadb-test-embedd
 %endif
 
 
+%ifarch riscv64
+mv -f %{buildroot}%{_prefix}/lib/pkgconfig/* %{buildroot}%{_libdir}/pkgconfig/
+rmdir %{buildroot}%{_prefix}/lib/pkgconfig
+%endif
+
 %if %{without clibrary}
 # Client part should be included in package 'mariadb-connector-c'
 rm %{buildroot}%{_libdir}/pkgconfig/libmariadb.pc
@@ -1625,6 +1630,9 @@ fi
 %endif
 
 %changelog
+* Tue Feb 20 2024 Liu Yang <Yang.Liu.sn@gmail.com> - 3:10.11.6-2
+- Fix pkgconfig dir path for riscv64.
+
 * Thu Jan 25 2024 Michal Schorm <mschorm@redhat.com> - 3:10.11.6-1
 - Rebase to 10.11.6
 
